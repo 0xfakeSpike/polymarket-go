@@ -1,0 +1,75 @@
+version: 2
+
+project_name: polymarket-go
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: pmctl
+    main: ./cmd/pmctl
+    binary: pmctl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+  - id: polymarket-mcp
+    main: ./cmd/polymarket-mcp
+    binary: polymarket-mcp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: binaries
+    ids:
+      - pmctl
+      - polymarket-mcp
+    formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  disable: false
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+brews:
+  - name: polymarket-go
+    ids:
+      - pmctl
+      - polymarket-mcp
+    repository:
+      owner: 0xfakeSpike
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/0xfakeSpike/polymarket-go
+    description: Polymarket Go SDK companion CLI and MCP bridge binaries
+    license: MIT
+    install: |
+      bin.install "pmctl"
+      bin.install "polymarket-mcp"
+    test: |
+      assert_match "pmctl - Polymarket CLI", shell_output("#{bin}/pmctl 2>&1", 2)
