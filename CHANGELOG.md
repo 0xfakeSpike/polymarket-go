@@ -31,3 +31,8 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - Split Homebrew publishing into two formulas (`polymarket-go` and `polymarket-mcp`) so GoReleaser can match build artifacts correctly during formula generation.
+
+## [v1.0.3]
+
+### Fixed
+- Split GoReleaser archives per binary and aligned formula IDs to archive IDs, fixing Homebrew artifact matching in release workflow.

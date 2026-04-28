@@ -32,13 +32,21 @@ builds:
       - arm64
 
 archives:
-  - id: binaries
+  - id: pmctl
     ids:
       - pmctl
-      - polymarket-mcp
     formats: [tar.gz]
     name_template: >-
       {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
+  - id: polymarket-mcp
+    ids:
+      - polymarket-mcp
+    formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}-mcp_
       {{- .Version }}_
       {{- .Os }}_
       {{- if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
