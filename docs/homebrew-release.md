@@ -46,6 +46,7 @@ After workflow succeeds:
 ```bash
 brew tap 0xfakeSpike/tap
 brew install polymarket-go
+brew install polymarket-mcp
 ```
 
 ## Troubleshooting

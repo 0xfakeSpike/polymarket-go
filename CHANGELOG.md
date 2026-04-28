@@ -26,3 +26,8 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - Removed private module dependency (`github.com/0xfakespike/everything`) that broke CI/release on GitHub runners.
 - Replaced external bool helper usage in search APIs with an internal helper.
 - Regenerated module metadata (`go.mod`/`go.sum`) to keep dependencies fully public.
+
+## [v1.0.2]
+
+### Fixed
+- Split Homebrew publishing into two formulas (`polymarket-go` and `polymarket-mcp`) so GoReleaser can match build artifacts correctly during formula generation.

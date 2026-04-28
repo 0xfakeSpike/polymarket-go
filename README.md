@@ -105,6 +105,7 @@ See `RELEASE_CHECKLIST.md`.
 ```bash
 brew tap 0xfakeSpike/tap
 brew install polymarket-go
+brew install polymarket-mcp
 ```
 
 First-time release setup is documented in `docs/homebrew-release.md`.

@@ -59,6 +59,20 @@ brews:
   - name: polymarket-go
     ids:
       - pmctl
+    repository:
+      owner: 0xfakeSpike
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/0xfakeSpike/polymarket-go
+    description: Polymarket Go companion CLI
+    license: MIT
+    install: |
+      bin.install "pmctl"
+    test: |
+      assert_match "pmctl - Polymarket CLI", shell_output("#{bin}/pmctl 2>&1", 2)
+  - name: polymarket-mcp
+    ids:
       - polymarket-mcp
     repository:
       owner: 0xfakeSpike
@@ -66,10 +80,9 @@ brews:
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: https://github.com/0xfakeSpike/polymarket-go
-    description: Polymarket Go SDK companion CLI and MCP bridge binaries
+    description: Polymarket MCP stdio bridge
     license: MIT
     install: |
-      bin.install "pmctl"
       bin.install "polymarket-mcp"
     test: |
-      assert_match "pmctl - Polymarket CLI", shell_output("#{bin}/pmctl 2>&1", 2)
+      shell_output("#{bin}/polymarket-mcp </dev/null")
