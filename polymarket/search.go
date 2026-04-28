@@ -3,8 +3,6 @@ package polymarket
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/0xfakespike/everything/utils"
 )
 
 // https://gamma-api.polymarket.com/search-v2?
@@ -55,8 +53,8 @@ func (c *Client) SearchProfiles(query string, params *SearchParams) ([]UserProfi
 		params = &SearchParams{}
 	}
 	params.Q = query
-	params.SearchTags = utils.BoolPtr(false)
-	params.SearchProfiles = utils.BoolPtr(true)
+	params.SearchTags = boolPtr(false)
+	params.SearchProfiles = boolPtr(true)
 
 	results, err := c.Search(params)
 	if err != nil {
@@ -72,8 +70,8 @@ func (c *Client) SearchTags(query string, params *SearchParams) ([]Tag, error) {
 		params = &SearchParams{}
 	}
 	params.Q = query
-	params.SearchTags = utils.BoolPtr(true)
-	params.SearchProfiles = utils.BoolPtr(false)
+	params.SearchTags = boolPtr(true)
+	params.SearchProfiles = boolPtr(false)
 
 	results, err := c.Search(params)
 	if err != nil {
@@ -98,3 +96,5 @@ func (c *Client) SearchByTag(query string, tags []string, params *SearchParams) 
 
 	return results.Events, nil
 }
+
+func boolPtr(v bool) *bool { return &v }
