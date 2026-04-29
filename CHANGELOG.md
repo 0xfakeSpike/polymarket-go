@@ -20,6 +20,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 ### Changed
 - Repository layout reorganized to be suitable for a public SDK + tools project.
 - `polymarket/` path kept as compatibility layer, while root package is now preferred.
+- Homebrew docs and release checklist now center on creating `homebrew-tap` first (方案 A).
 
 ## [v1.0.1]
 

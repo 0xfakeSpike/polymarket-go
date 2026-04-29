@@ -27,3 +27,10 @@ Use this checklist before tagging a release (for example `v1.0.0`).
 - [ ] Create git tag (example: `git tag v1.0.0`).
 - [ ] Push commits and tags.
 - [ ] Publish GitHub release notes from `CHANGELOG.md`.
+
+## Homebrew tap (方案 A: required for `brew install`)
+
+- [ ] Tap repository exists: `https://github.com/0xfakeSpike/homebrew-tap` (see `docs/homebrew-release.md`).
+- [ ] `polymarket-go` has Actions secret **`HOMEBREW_TAP_GITHUB_TOKEN`** with **Contents: write** on that tap repo.
+- [ ] Repository variable **`SKIP_HOMEBREW_TAP`** is **unset** or **`false`** (otherwise formulas are not pushed).
+- [ ] After pushing a `v*` tag, confirm the **release** workflow is green and the tap repo received formula commits.

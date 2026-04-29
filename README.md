@@ -108,4 +108,4 @@ brew install polymarket-go
 brew install polymarket-mcp
 ```
 
-First-time release setup is documented in `docs/homebrew-release.md`.
+Homebrew publishing uses a tap repo **`0xfakeSpike/homebrew-tap`**; create it first, then follow `docs/homebrew-release.md` (方案 A).
