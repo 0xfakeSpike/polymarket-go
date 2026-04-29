@@ -123,9 +123,6 @@ docs/                  User and operator guides
 |----------|---------|
 | [docs/mcp-integration.md](docs/mcp-integration.md) | MCP wire format, tools, parameters, security. |
 | [docs/homebrew-release.md](docs/homebrew-release.md) | Tap repository, tokens, tags, optional skip of formula push. |
-| [VERSIONING.md](VERSIONING.md) | SemVer and API stability. |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Development and PR expectations. |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pre-release checks. |
 | [CHANGELOG.md](CHANGELOG.md) | Release history. |
 
 ## Security
