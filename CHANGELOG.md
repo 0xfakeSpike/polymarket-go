@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.9]
+
+### Changed
+- Move CLI skill/playbook from `.cursor/skills` into public docs as `docs/cli-skill.md`.
+- README documentation index now links the CLI skill guide for all users.
+
 ## [v1.0.8]
 
 ### Added

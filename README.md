@@ -121,6 +121,7 @@ docs/                  User and operator guides
 
 | Document | Content |
 |----------|---------|
+| [docs/cli-skill.md](docs/cli-skill.md) | Practical `pmctl` command playbook for daily usage. |
 | [docs/mcp-integration.md](docs/mcp-integration.md) | MCP wire format, tools, parameters, security. |
 | [docs/homebrew-release.md](docs/homebrew-release.md) | Tap repository, tokens, tags, optional skip of formula push. |
 | [CHANGELOG.md](CHANGELOG.md) | Release history. |

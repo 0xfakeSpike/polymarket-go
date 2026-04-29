@@ -1,15 +1,12 @@
----
-name: pmctl-cli
-description: Execute Polymarket CLI workflows with pmctl, including tool discovery, JSON params usage, reflective method calls, and safe auth handling. Use when the user asks to run pmctl commands, debug CLI output, or build repeatable command snippets for Polymarket data/trading tasks.
----
+# CLI Skill (`pmctl`)
 
-# pmctl CLI Workflow
+This guide is the practical playbook for using `pmctl` in daily workflows.
 
 ## Quick Rules
 
-- Use `pmctl tools` first to discover supported named tools.
+- Run `pmctl tools` first to discover supported named tools.
 - Use `pmctl tool -params '<json object>' <tool_name>` for registry tools.
-- Use `pmctl methods` / `pmctl call` only when a named tool does not cover the task.
+- Use `pmctl methods` / `pmctl call` when a named tool does not cover the task.
 - `tool` params are JSON **object**; `call` args are JSON **array**.
 - Prefer read-only mode (`-public=true`, default). Use private key only when required.
 
@@ -28,7 +25,7 @@ pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
 ## Auth and Safety
 
 - Public-only queries: keep default `-public=true`.
-- Authenticated operations: `-public=false` plus `-private-key` or `PMCTL_PRIVATE_KEY`.
+- Authenticated operations: `-public=false` with `-private-key` or `PMCTL_PRIVATE_KEY`.
 - Never print full private keys in logs or examples.
 
 ## Troubleshooting
@@ -37,4 +34,4 @@ pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
   - `tool` requires object: `{"k":"v"}`
   - `call` requires array: `["arg1", 2]`
 - `unknown tool`: run `pmctl tools` and use exact name.
-- reflection call errors: verify `pmctl methods -long`, method name, and arg order/types.
+- reflection call errors: verify `pmctl methods -long`, method name, and argument order/types.
