@@ -15,9 +15,16 @@ This repository now separates **SDK** and **entrypoints**, and includes a runnab
 ## Typical tool mapping
 
 - `search_events(query, limit)` -> `Client.SearchEventsWithQuery`
-- `get_order_book(token_id)` -> `Client.GetOrderBook`
-- `get_market(slug)` -> `Client.GetMarketBySlug`
-- `get_event(event_id)` -> `Client.GetEvent`
+- `get_orderbook(token_id)` -> `Client.GetOrderBook`
+- **`client_call(method, args)`** -> reflection bridge for **any exported** `Client` method (same rules as `pmctl call`). Example params:
+
+```json
+{"tool":"client_call","params":{"method":"GetOrderBook","args":["<token_id>"]}}
+```
+
+Optional env **`POLYMARKET_MCP_PRIVATE_KEY`** (hex, with or without `0x`): if set, the bridge uses `NewClient` so trading and L2 endpoints work; if unset, a public client is used.
+
+Methods with **function or non-empty interface parameters** (WebSocket handlers, and so on) are rejected by the bridge; use the Go SDK for those.
 
 ## Minimal handler pattern (pseudo)
 
@@ -61,3 +68,4 @@ Supported tool names:
 
 - `search_events`
 - `get_orderbook`
+- `client_call`

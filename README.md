@@ -66,6 +66,17 @@ go run ./cmd/pmctl search-events -q "trump" -limit 5
 go run ./cmd/pmctl orderbook -token-id "<CLOB_TOKEN_ID>"
 ```
 
+Expose **any exported** `Client` method without writing a wrapper per command:
+
+```bash
+go run ./cmd/pmctl methods
+go run ./cmd/pmctl methods -long
+go run ./cmd/pmctl call GetOK
+go run ./cmd/pmctl call GetOrderBook -args '["<CLOB_TOKEN_ID>"]'
+```
+
+Arguments are a **JSON array** in parameter order; `context.Context` is injected automatically. Methods that take **functions or handler interfaces** (for example WebSocket runners) cannot be used through `call` and should use the Go SDK instead.
+
 ## MCP integration
 
 See `docs/mcp-integration.md` for how to expose this SDK as MCP tools for Cursor/Claude/Desktop clients.

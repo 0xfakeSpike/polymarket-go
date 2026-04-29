@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-
-	"github.com/0xfakeSpike/polymarket-go"
 )
 
 type App struct {
@@ -31,6 +29,16 @@ func (a App) Run(args []string) int {
 			a.fail(err)
 			return 1
 		}
+	case "methods":
+		if err := a.runMethods(args[1:]); err != nil {
+			a.fail(err)
+			return 1
+		}
+	case "call":
+		if err := a.runCall(args[1:]); err != nil {
+			a.fail(err)
+			return 1
+		}
 	default:
 		a.usage()
 		return 2
@@ -51,7 +59,7 @@ func (a App) runSearchEvents(args []string) error {
 		return fmt.Errorf("missing -q")
 	}
 
-	c, err := polymarket.NewPublicClient()
+	c, err := newClientFromFlags(true, "")
 	if err != nil {
 		return err
 	}
@@ -77,7 +85,7 @@ func (a App) runOrderbook(args []string) error {
 		return fmt.Errorf("missing -token-id")
 	}
 
-	c, err := polymarket.NewPublicClient()
+	c, err := newClientFromFlags(true, "")
 	if err != nil {
 		return err
 	}
@@ -101,6 +109,14 @@ func (a App) usage() {
 Usage:
   pmctl search-events -q "<query>" [-limit 10]
   pmctl orderbook -token-id "<token_id>"
+  pmctl methods [-long]
+  pmctl call [flags] <ClientMethod>   # JSON array args; see "pmctl methods -long"
+
+Examples:
+  pmctl call GetOK
+  pmctl call GetOrderBook -args '["<token_id>"]'
+  pmctl call Search -args '[{"q":"election","type":"events"}]'
+  pmctl call CreateOrder -public=false -private-key "$PMCTL_PRIVATE_KEY" -args '[...]'
 `)
 }
 

@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/0xfakeSpike/polymarket-go"
+	"github.com/0xfakeSpike/polymarket-go/internal/clientcall"
 )
 
 type request struct {
@@ -29,6 +31,11 @@ type orderbookParams struct {
 	TokenID string `json:"token_id"`
 }
 
+type clientCallParams struct {
+	Method string          `json:"method"`
+	Args   json.RawMessage `json:"args"`
+}
+
 type Server struct {
 	client *polymarket.Client
 	in     io.Reader
@@ -36,7 +43,13 @@ type Server struct {
 }
 
 func New(in io.Reader, out io.Writer) (*Server, error) {
-	client, err := polymarket.NewPublicClient()
+	var client *polymarket.Client
+	var err error
+	if pk := os.Getenv("POLYMARKET_MCP_PRIVATE_KEY"); pk != "" {
+		client, err = polymarket.NewClient(pk)
+	} else {
+		client, err = polymarket.NewPublicClient()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +101,25 @@ func (s *Server) handle(req request) {
 			return
 		}
 		s.writeResp(response{OK: true, Data: book})
+	case "client_call":
+		var p clientCallParams
+		if err := json.Unmarshal(req.Params, &p); err != nil {
+			s.writeResp(response{OK: false, Error: err.Error()})
+			return
+		}
+		if p.Method == "" {
+			s.writeResp(response{OK: false, Error: "missing method"})
+			return
+		}
+		if len(p.Args) == 0 {
+			p.Args = []byte("[]")
+		}
+		data, err := clientcall.Invoke(s.client, p.Method, p.Args)
+		if err != nil {
+			s.writeResp(response{OK: false, Error: err.Error()})
+			return
+		}
+		s.writeResp(response{OK: true, Data: data})
 	default:
 		s.writeResp(response{OK: false, Error: "unknown tool"})
 	}
