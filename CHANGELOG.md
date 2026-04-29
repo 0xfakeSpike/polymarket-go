@@ -22,6 +22,14 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - `polymarket/` path kept as compatibility layer, while root package is now preferred.
 - Homebrew docs and release checklist now center on creating `homebrew-tap` first (方案 A).
 
+## [v1.0.6]
+
+### Changed
+- Homebrew release documentation and `RELEASE_CHECKLIST.md` aligned with tap-first setup (方案 A).
+
+### Notes
+- Use this tag after `0xfakeSpike/homebrew-tap` exists and `HOMEBREW_TAP_GITHUB_TOKEN` is configured, so GoReleaser can push `polymarket-go` and `polymarket-mcp` formulas.
+
 ## [v1.0.1]
 
 ### Fixed
