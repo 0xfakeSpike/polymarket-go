@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.13]
+
+### Added
+- New high-level SDK method `GetMarketsByAnnualizedReturn` to rank markets by annualized return from current time to settlement.
+
+### Changed
+- Unify CLI/MCP style to reflective invocation only: keep `methods` and `client_call`, remove dedicated named tool wrappers.
+- Update README and MCP integration docs to show unified `client_call` usage, including annualized ranking example.
+
 ## [v1.0.12]
 
 ### Changed

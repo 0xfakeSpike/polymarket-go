@@ -25,10 +25,6 @@ type Info struct {
 	ReadOnly    bool   `json:"read_only"`
 }
 
-type orderbookParams struct {
-	TokenID string `json:"token_id"`
-}
-
 type clientCallParams struct {
 	Method string          `json:"method"`
 	Args   json.RawMessage `json:"args"`
@@ -39,21 +35,6 @@ type methodsParams struct {
 }
 
 var registry = map[string]Tool{
-	"get_orderbook": {
-		Name:        "get_orderbook",
-		Description: "Get the CLOB order book for a token id.",
-		ReadOnly:    true,
-		Run: func(c *polymarket.Client, raw json.RawMessage) (any, error) {
-			var p orderbookParams
-			if err := decodeParams(raw, &p); err != nil {
-				return nil, err
-			}
-			if p.TokenID == "" {
-				return nil, fmt.Errorf("missing token_id")
-			}
-			return c.GetOrderBook(p.TokenID)
-		},
-	},
 	"client_call": {
 		Name:        "client_call",
 		Description: "Invoke any exported polymarket.Client method with JSON array arguments.",

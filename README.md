@@ -5,7 +5,7 @@ Go client for the [Polymarket](https://polymarket.com) **CLOB** API, plus **`pmc
 ## Features
 
 - **SDK** — import `github.com/0xfakeSpike/polymarket-go`; `Client` mirrors the public CLOB client surface in Go style.
-- **CLI (`pmctl`)** — named CLOB tools with JSON params, optional reflection **`call`** for exported `Client` methods, and **`methods`** to list signatures.
+- **CLI (`pmctl`)** — unified reflective method calls via **`call`** plus **`methods`** to list signatures.
 - **MCP server** — same tool registry as the CLI, exposed as native MCP over stdio; optional authenticated client via env.
 - **Examples** — under `examples/`.
 
@@ -76,11 +76,11 @@ Examples:
 
 ```bash
 pmctl tools
-pmctl tool -params '{"token_id":"<CLOB_TOKEN_ID>"}' get_orderbook
 pmctl methods -long | head -20
 pmctl call GetOK
 pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
 pmctl call -args '["<CONDITION_ID>"]' GetClobMarketInfo
+pmctl call -args '[{"limit":10,"max_pages":3,"min_best_ask":0.5}]' GetMarketsByAnnualizedReturn
 ```
 
 `call` injects `context.Context` where needed; methods that take **functions** or **handler interfaces** (e.g. WebSocket runners) are not supported through reflection — use the SDK in Go.
@@ -108,7 +108,7 @@ cmd/pmctl              CLI entrypoint
 cmd/polymarket-mcp     MCP stdio entrypoint
 internal/cli/pmctl   CLI wiring (flags, stdout/stderr)
 internal/mcp/stdio   MCP stdio server (native MCP protocol)
-internal/tools       Shared tool registry (get_orderbook, methods, client_call)
+internal/tools       Shared tool registry (methods, client_call)
 internal/tools/invoke Reflection helpers for client_call
 polymarket/            CLOB client implementation
 examples/              Runnable examples

@@ -13,7 +13,7 @@ func TestRunTools(t *testing.T) {
 	if code := app.Run([]string{"tools"}); code != 0 {
 		t.Fatalf("exit code = %d, stderr = %s", code, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), `"get_orderbook"`) {
+	if !strings.Contains(stdout.String(), `"client_call"`) {
 		t.Fatalf("expected tool list, got %s", stdout.String())
 	}
 }

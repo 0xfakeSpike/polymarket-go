@@ -218,27 +218,6 @@ func listToolDescriptors() []toolDescriptor {
 
 func toolSchema(name string) map[string]any {
 	switch name {
-	case "search_events":
-		return objectSchema(
-			map[string]any{"query": map[string]any{"type": "string"}, "limit": map[string]any{"type": "integer", "minimum": 1}},
-			[]string{"query"},
-		)
-	case "get_orderbook":
-		return objectSchema(
-			map[string]any{"token_id": map[string]any{"type": "string"}},
-			[]string{"token_id"},
-		)
-	case "rank_markets_by_annualized_return":
-		return objectSchema(
-			map[string]any{
-				"tag_slug":              map[string]any{"type": "string"},
-				"keyword":               map[string]any{"type": "string"},
-				"events_limit":          map[string]any{"type": "integer", "minimum": 1},
-				"limit":                 map[string]any{"type": "integer", "minimum": 1},
-				"min_annualized_return": map[string]any{"type": "number"},
-			},
-			nil,
-		)
 	case "methods":
 		return objectSchema(
 			map[string]any{"long": map[string]any{"type": "boolean"}},

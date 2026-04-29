@@ -22,7 +22,7 @@ func TestList_sortedAndIncludesCoreTools(t *testing.T) {
 	for _, tool := range got {
 		names[tool.Name] = true
 	}
-	for _, want := range []string{"client_call", "get_orderbook", "methods"} {
+	for _, want := range []string{"client_call", "methods"} {
 		if !names[want] {
 			t.Fatalf("missing tool %q", want)
 		}
@@ -48,9 +48,6 @@ func TestCall_validatesParams(t *testing.T) {
 	c, err := polymarket.NewPublicClient()
 	if err != nil {
 		t.Fatal(err)
-	}
-	if _, err := Call(c, "get_orderbook", nil); err == nil {
-		t.Fatal("expected missing token_id error")
 	}
 	if _, err := Call(c, "missing_tool", nil); err == nil {
 		t.Fatal("expected unknown tool error")

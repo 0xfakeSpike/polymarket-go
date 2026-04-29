@@ -30,6 +30,8 @@ type (
 	BuilderAPIKey          = sdk.BuilderAPIKey
 	BuilderAPIKeyResponse  = sdk.BuilderAPIKeyResponse
 	ReadonlyAPIKeyResponse = sdk.ReadonlyAPIKeyResponse
+	AnnualizedReturnMarketsParams = sdk.AnnualizedReturnMarketsParams
+	MarketAnnualizedReturn        = sdk.MarketAnnualizedReturn
 	OpenOrder              = sdk.OpenOrder
 	Trade                  = sdk.Trade
 	TradesPage             = sdk.TradesPage
