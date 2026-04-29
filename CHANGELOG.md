@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.8]
+
+### Added
+- New shared tool `rank_markets_by_annualized_return` for CLI/MCP to rank open markets by favored-side annualized return from live order books.
+- Optional filter `min_annualized_return` to keep only markets above a target annualized threshold.
+
+### Changed
+- README and MCP integration docs now include usage and parameter examples for the annualized ranking tool.
+
 ## [v1.0.7]
 
 ### Added

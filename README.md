@@ -78,6 +78,7 @@ Examples:
 pmctl tools
 pmctl tool -params '{"query":"election","limit":5}' search_events
 pmctl tool -params '{"token_id":"<CLOB_TOKEN_ID>"}' get_orderbook
+pmctl tool -params '{"tag_slug":"geopolitics","keyword":"iran","limit":10,"min_annualized_return":0.25}' rank_markets_by_annualized_return
 pmctl methods -long | head -20
 pmctl call GetOK
 pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
@@ -109,7 +110,7 @@ cmd/pmctl              CLI entrypoint
 cmd/polymarket-mcp     MCP stdio entrypoint
 internal/cli/pmctl   CLI wiring (flags, stdout/stderr)
 internal/mcp/stdio   MCP JSON-line server
-internal/tools       Shared tool registry (search_events, get_orderbook, methods, client_call)
+internal/tools       Shared tool registry (search_events, get_orderbook, rank_markets_by_annualized_return, methods, client_call)
 internal/tools/invoke Reflection helpers for client_call
 polymarket/            Client implementation (same module, compatibility import path)
 examples/              Runnable examples

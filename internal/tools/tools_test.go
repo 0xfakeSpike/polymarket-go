@@ -22,7 +22,7 @@ func TestList_sortedAndIncludesCoreTools(t *testing.T) {
 	for _, tool := range got {
 		names[tool.Name] = true
 	}
-	for _, want := range []string{"client_call", "get_orderbook", "methods", "search_events"} {
+	for _, want := range []string{"client_call", "get_orderbook", "methods", "rank_markets_by_annualized_return", "search_events"} {
 		if !names[want] {
 			t.Fatalf("missing tool %q", want)
 		}
@@ -54,5 +54,32 @@ func TestCall_validatesParams(t *testing.T) {
 	}
 	if _, err := Call(c, "missing_tool", nil); err == nil {
 		t.Fatal("expected unknown tool error")
+	}
+}
+
+func TestEventMatchesKeyword(t *testing.T) {
+	ev := polymarket.Event{
+		Title:       "Will Iran close strait this year?",
+		Description: "Geopolitical risk event",
+	}
+	if !eventMatchesKeyword(ev, "iran") {
+		t.Fatal("expected keyword match in title")
+	}
+	if eventMatchesKeyword(ev, "bitcoin") {
+		t.Fatal("did not expect unrelated keyword to match")
+	}
+}
+
+func TestRankMarketsParamsDecodeMinAnnualizedReturn(t *testing.T) {
+	var p rankMarketsParams
+	raw := json.RawMessage(`{"min_annualized_return":0.3}`)
+	if err := decodeParams(raw, &p); err != nil {
+		t.Fatal(err)
+	}
+	if p.MinAnnualizedReturn == nil {
+		t.Fatal("expected min_annualized_return to be set")
+	}
+	if *p.MinAnnualizedReturn != 0.3 {
+		t.Fatalf("unexpected min_annualized_return: got %v", *p.MinAnnualizedReturn)
 	}
 }
