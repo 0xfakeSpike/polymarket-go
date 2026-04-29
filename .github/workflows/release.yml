@@ -31,3 +31,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+          # Optional: set repo/org variable SKIP_HOMEBREW_TAP=true to skip tap push when homebrew-tap is not ready.
+          SKIP_HOMEBREW_TAP: ${{ vars.SKIP_HOMEBREW_TAP }}

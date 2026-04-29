@@ -8,6 +8,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Optional `SKIP_HOMEBREW_TAP` repository variable (passed from Actions) to skip Homebrew tap commits when the tap repo is not ready yet.
 - Public root SDK import path via `github.com/0xfakeSpike/polymarket-go`.
 - CLI entrypoint `cmd/pmctl` for search and orderbook workflows.
 - MCP stdio bridge entrypoint `cmd/polymarket-mcp`.

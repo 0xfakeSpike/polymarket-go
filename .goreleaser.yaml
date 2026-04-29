@@ -70,6 +70,8 @@ release:
 
 brews:
   - name: polymarket-go
+    # Set repository variable SKIP_HOMEBREW_TAP=true to publish GitHub release only (no tap commit).
+    skip_upload: '{{ eq .Env.SKIP_HOMEBREW_TAP "true" }}'
     ids:
       - pmctl
     repository:
@@ -85,6 +87,7 @@ brews:
     test: |
       assert_match "pmctl - Polymarket CLI", shell_output("#{bin}/pmctl 2>&1", 2)
   - name: polymarket-mcp
+    skip_upload: '{{ eq .Env.SKIP_HOMEBREW_TAP "true" }}'
     ids:
       - polymarket-mcp
     repository:
