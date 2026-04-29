@@ -63,6 +63,11 @@ changelog:
       - "^test:"
       - "^chore:"
 
+# When a previous run partially uploaded assets, GitHub returns 422 already_exists.
+# This deletes the conflicting asset and retries (GitHub-only, see GoReleaser docs).
+release:
+  replace_existing_artifacts: true
+
 brews:
   - name: polymarket-go
     ids:

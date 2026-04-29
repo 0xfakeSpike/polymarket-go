@@ -36,3 +36,8 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - Split GoReleaser archives per binary and aligned formula IDs to archive IDs, fixing Homebrew artifact matching in release workflow.
+
+## [v1.0.4]
+
+### Fixed
+- Enable `release.replace_existing_artifacts` in GoReleaser so re-runs or partial uploads do not fail with GitHub `422 already_exists` on release assets.

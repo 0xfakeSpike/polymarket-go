@@ -53,4 +53,5 @@ brew install polymarket-mcp
 
 - If formula update fails, check `HOMEBREW_TAP_GITHUB_TOKEN` permissions.
 - If tag workflow does not start, ensure tag matches `v*`.
+- If GitHub upload fails with `422 ... already_exists`, the release already has those asset names (often from a partial run). This repo sets `release.replace_existing_artifacts: true` in `.goreleaser.yaml` so GoReleaser removes conflicting assets and retries. Alternatively delete the broken release on GitHub and re-run the workflow or push a new patch tag.
 - If Homebrew package name conflicts, rename `brews.name` in `.goreleaser.yaml`.
