@@ -7,6 +7,12 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.14]
+
+### Changed
+- Align CLI/MCP documentation with the unified reflective workflow: `methods` + `client_call` as the default invocation path.
+- Update `pmctl` usage examples and CLI skill guide to remove legacy named-tool examples and include annualized ranking invocation via `client_call`.
+
 ## [v1.0.13]
 
 ### Added

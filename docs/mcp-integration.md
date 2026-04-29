@@ -17,7 +17,7 @@
 
 ## Tools
 
-All tools share the same definitions as `pmctl tool` (see `internal/tools`). Tool input is passed via MCP `tools/call.arguments`.
+Tool registry is intentionally minimal and unified: `methods` + `client_call` (see `internal/tools`). SDK calls should go through MCP `tools/call.arguments`.
 
 ### `methods`
 
