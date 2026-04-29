@@ -6,6 +6,8 @@ import (
 	"net/url"
 )
 
+const bytes32Zero = "0x0000000000000000000000000000000000000000000000000000000000000000"
+
 func tradeParamsValues(p *TradeParams, nextCursor string) url.Values {
 	q := url.Values{}
 	if nextCursor != "" {
@@ -31,6 +33,18 @@ func tradeParamsValues(p *TradeParams, nextCursor string) url.Values {
 	}
 	if p.After != "" {
 		q.Set("after", p.After)
+	}
+	return q
+}
+
+func builderTradeParamsValues(p *BuilderTradeParams, nextCursor string) url.Values {
+	var base *TradeParams
+	if p != nil {
+		base = &p.TradeParams
+	}
+	q := tradeParamsValues(base, nextCursor)
+	if p != nil && p.BuilderCode != "" {
+		q.Set("builder_code", p.BuilderCode)
 	}
 	return q
 }
@@ -114,21 +128,17 @@ func (c *Client) GetTradesPaginated(params *TradeParams, nextCursor string) (*Tr
 	return &page, nil
 }
 
-// GetBuilderTrades returns builder-attributed trades (builder headers only, matches clob-client).
-func (c *Client) GetBuilderTrades(params *TradeParams, nextCursor string) (*TradesPage, error) {
-	if err := c.requireBuilder(); err != nil {
-		return nil, err
+// GetBuilderTrades returns builder-attributed trades.
+func (c *Client) GetBuilderTrades(params *BuilderTradeParams, nextCursor string) (*TradesPage, error) {
+	if params == nil || params.BuilderCode == "" || params.BuilderCode == bytes32Zero {
+		return nil, fmt.Errorf("builderCode is required and cannot be zero")
 	}
 	if nextCursor == "" {
 		nextCursor = InitialCursor
 	}
 	path := PathBuilderTrades
-	h, err := c.builderHeadersOnly("GET", path, "")
-	if err != nil {
-		return nil, err
-	}
-	q := tradeParamsValues(params, nextCursor)
-	data, err := c.clobRequest("GET", path, q, h, nil)
+	q := builderTradeParamsValues(params, nextCursor)
+	data, err := c.clobRequest("GET", path, q, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +147,40 @@ func (c *Client) GetBuilderTrades(params *TradeParams, nextCursor string) (*Trad
 		return nil, err
 	}
 	return &page, nil
+}
+
+// GetPreMigrationOrders walks all pages of pre-migration orders unless onlyFirstPage.
+func (c *Client) GetPreMigrationOrders(onlyFirstPage bool, nextCursor string) ([]OpenOrder, error) {
+	if err := c.requireL2(); err != nil {
+		return nil, err
+	}
+	if nextCursor == "" {
+		nextCursor = InitialCursor
+	}
+	var all []OpenOrder
+	path := PathPreMigrationOrders
+	for nextCursor != EndCursor && (nextCursor == InitialCursor || !onlyFirstPage) {
+		h, err := c.l2Headers("GET", path, "", false)
+		if err != nil {
+			return nil, err
+		}
+		q := url.Values{}
+		q.Set("next_cursor", nextCursor)
+		data, err := c.clobRequest("GET", path, q, h, nil)
+		if err != nil {
+			return nil, err
+		}
+		var page OpenOrdersPage
+		if err := json.Unmarshal(data, &page); err != nil {
+			return nil, err
+		}
+		all = append(all, page.Orders...)
+		nextCursor = page.NextCursor
+		if onlyFirstPage {
+			break
+		}
+	}
+	return all, nil
 }
 
 // GetOpenOrders walks all pages of open orders unless onlyFirstPage.
@@ -177,7 +221,7 @@ func (c *Client) GetOpenOrders(params *OpenOrderParams, onlyFirstPage bool, next
 }
 
 // PostOrder posts a signed order with execution type (GTC, GTD, FOK, FAK).
-func (c *Client) PostOrder(signed *SignedOrderV2, orderType string, deferExec, postOnly bool) (*OrderResponse, error) {
+func (c *Client) PostOrder(signed *SignedOrderV2, orderType string, postOnly, deferExec bool) (*OrderResponse, error) {
 	return c.postSignedOrder(signed, orderType, deferExec, postOnly)
 }
 
@@ -189,15 +233,18 @@ type PostOrderBatchItem struct {
 }
 
 // PostOrders posts multiple signed orders (POST /orders).
-func (c *Client) PostOrders(orders []PostOrderBatchItem, deferExec, defaultPostOnly bool) (json.RawMessage, error) {
+func (c *Client) PostOrders(orders []PostOrderBatchItem, postOnly, deferExec bool) (json.RawMessage, error) {
 	if err := c.requireL2(); err != nil {
 		return nil, err
 	}
 	outs := make([]*postOrderEnvelope, 0, len(orders))
 	for _, o := range orders {
-		po := defaultPostOnly
+		po := postOnly
 		if o.PostOnly != nil {
 			po = *o.PostOnly
+		}
+		if po && (o.OrderType == OrderTypeFOK || o.OrderType == OrderTypeFAK) {
+			return nil, fmt.Errorf("postOnly is not supported for FOK/FAK orders")
 		}
 		outs = append(outs, newOrderWireFromSigned(o.Order, c.apiKeyCredentials.ApiKey, o.OrderType, deferExec, po))
 	}

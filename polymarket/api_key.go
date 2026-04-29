@@ -130,7 +130,7 @@ func (c *Client) DeleteAPIKey(apiKey, passphrase, secret string) error {
 	return nil
 }
 
-func (c *Client) GetClosedOnlyModeStatus() (*ClosedOnlyModeStatus, error) {
+func (c *Client) GetClosedOnlyMode() (*ClosedOnlyModeStatus, error) {
 	if c.apiKeyCredentials == nil {
 		return nil, fmt.Errorf("no API key credentials set")
 	}
@@ -148,47 +148,4 @@ func (c *Client) GetClosedOnlyModeStatus() (*ClosedOnlyModeStatus, error) {
 		return nil, fmt.Errorf("unmarshal closed-only: %w", err)
 	}
 	return &status, nil
-}
-
-func (c *Client) GetAccessStatus() (*AccessStatus, error) {
-	if c.apiKeyCredentials == nil {
-		return nil, fmt.Errorf("no API key credentials set")
-	}
-	path := PathAccessStatus
-	headers, err := c.buildL2AuthHeaders("GET", path, "")
-	if err != nil {
-		return nil, err
-	}
-	body, err := c.clobRequest("GET", path, nil, headers, nil)
-	if err != nil {
-		return nil, fmt.Errorf("access status: %w", err)
-	}
-	var status AccessStatus
-	if err := json.Unmarshal(body, &status); err != nil {
-		return nil, fmt.Errorf("unmarshal access status: %w", err)
-	}
-	return &status, nil
-}
-
-// CreateAndSetAPIKey creates a new API key and sets it on the client.
-func (c *Client) CreateAndSetAPIKey() (*APIKeyCredentials, error) {
-	credentials, err := c.CreateAPIKey()
-	if err != nil {
-		return nil, err
-	}
-	c.SetAPIKeyCredentials(credentials)
-	return credentials, nil
-}
-
-// DeleteAPIKeyWithCredentials deletes the current API key using stored credentials.
-func (c *Client) DeleteAPIKeyWithCredentials() error {
-	if c.apiKeyCredentials == nil {
-		return fmt.Errorf("no API key credentials set")
-	}
-	err := c.DeleteAPIKey(c.apiKeyCredentials.ApiKey, c.apiKeyCredentials.Passphrase, c.apiKeyCredentials.Secret)
-	if err != nil {
-		return err
-	}
-	c.apiKeyCredentials = nil
-	return nil
 }

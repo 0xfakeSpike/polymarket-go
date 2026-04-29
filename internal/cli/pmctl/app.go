@@ -106,11 +106,10 @@ Usage:
   pmctl call [flags] <ClientMethod>   # JSON array args; see "pmctl methods -long"
 
 Examples:
-  pmctl tool -params '{"query":"trump","limit":5}' search_events
   pmctl tool -params '{"token_id":"<token_id>"}' get_orderbook
   pmctl call GetOK
   pmctl call -args '["<token_id>"]' GetOrderBook
-  pmctl call -args '[{"q":"election","type":"events"}]' Search
+  pmctl call -args '["<condition_id>"]' GetClobMarketInfo
   pmctl call -public=false -private-key "$PMCTL_PRIVATE_KEY" -args '[...]' CreateOrder
 `)
 }

@@ -5,11 +5,30 @@ import (
 	"fmt"
 	"net/url"
 	"sort"
+	"time"
 )
 
 // GetOK hits the CLOB health/root endpoint.
 func (c *Client) GetOK() (json.RawMessage, error) {
-	return c.clobRequest("GET", "/", nil, nil, nil)
+	return c.clobRequest("GET", PathOK, nil, nil, nil)
+}
+
+// GetVersion returns the CLOB API version, defaulting to 2 when the response omits version.
+func (c *Client) GetVersion() (int, error) {
+	body, err := c.clobRequest("GET", "/version", nil, nil, nil)
+	if err != nil {
+		return 0, err
+	}
+	var r struct {
+		Version int `json:"version"`
+	}
+	if err := json.Unmarshal(body, &r); err != nil {
+		return 0, err
+	}
+	if r.Version == 0 {
+		return 2, nil
+	}
+	return r.Version, nil
 }
 
 func (c *Client) getPaginated(path, nextCursor string) (*PaginationPayload, error) {
@@ -49,9 +68,41 @@ func (c *Client) GetMarkets(nextCursor string) (*PaginationPayload, error) {
 	return c.getPaginated(PathMarkets, nextCursor)
 }
 
-// GetCLOBMarket fetches a single market by condition id from the CLOB API.
-func (c *Client) GetCLOBMarket(conditionID string) (json.RawMessage, error) {
+// GetMarket fetches a single market by condition id from CLOB /markets/{conditionID}.
+func (c *Client) GetMarket(conditionID string) (json.RawMessage, error) {
 	return c.clobRequest("GET", PathMarketPrefix+conditionID, nil, nil, nil)
+}
+
+// GetClobMarketInfo fetches typed CLOB market info and caches token metadata.
+func (c *Client) GetClobMarketInfo(conditionID string) (*MarketDetails, error) {
+	c.ensureMetadataCaches()
+	body, err := c.clobRequest("GET", PathCLOBMarketPrefix+conditionID, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	var details MarketDetails
+	if err := json.Unmarshal(body, &details); err != nil {
+		return nil, err
+	}
+	if len(details.Tokens) == 0 {
+		return nil, fmt.Errorf("failed to fetch market info for condition id %s", conditionID)
+	}
+	tick := fmt.Sprintf("%g", details.MinTickSize)
+	for _, token := range details.Tokens {
+		if token == nil || token.TokenID == "" {
+			continue
+		}
+		c.tokenConditionMap[token.TokenID] = conditionID
+		if tick != "" {
+			c.tickSizes[token.TokenID] = tick
+			c.tickSizeAt[token.TokenID] = time.Now()
+		}
+		c.negRiskCache[token.TokenID] = details.NegRisk
+		if details.FeeDetails != nil {
+			c.feeInfoCache[token.TokenID] = *details.FeeDetails
+		}
+	}
+	return &details, nil
 }
 
 // GetOrderBook returns the order book for a token.
@@ -69,6 +120,11 @@ func (c *Client) GetOrderBook(tokenID string) (*Book, error) {
 	sortOrderBookLevels(&book)
 	c.rememberTickFromBook(book.AssetID, book.TickSize)
 	return &book, nil
+}
+
+// GetOrderBookHash returns the SDK orderbook summary hash for a book.
+func (c *Client) GetOrderBookHash(book *Book) (string, error) {
+	return OrderBookSummaryHash(book)
 }
 
 // sortOrderBookLevels sorts bids high→low and asks low→high (same convention as Book.BidsData / AsksData).

@@ -2,7 +2,6 @@ package polymarket
 
 import (
 	"encoding/json"
-	"net/url"
 )
 
 // CreateReadonlyAPIKey creates a readonly API key (L2).
@@ -56,22 +55,6 @@ func (c *Client) DeleteReadonlyAPIKey(key string) error {
 	}
 	_, err = c.clobRequest("DELETE", path, nil, h, b)
 	return err
-}
-
-// ValidateReadonlyAPIKey is a public endpoint (no auth).
-func (c *Client) ValidateReadonlyAPIKey(address, key string) (string, error) {
-	q := url.Values{}
-	q.Set("address", address)
-	q.Set("key", key)
-	data, err := c.clobRequest("GET", PathValidateReadonly, q, nil, nil)
-	if err != nil {
-		return "", err
-	}
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return string(data), nil
-	}
-	return s, nil
 }
 
 // CreateBuilderAPIKey creates a builder API key (L2).

@@ -21,9 +21,7 @@ type EnvConfig struct {
 	APIPass    string
 	SkipL2Auth bool
 
-	GammaBaseURL string
-	DataBaseURL  string
-	CLOBHost     string
+	CLOBHost string
 
 	GeoBlockToken string
 	UseServerTime bool
@@ -46,8 +44,6 @@ func LoadEnvConfig() (EnvConfig, error) {
 		APIKey:        strings.TrimSpace(os.Getenv("POLYMARKET_API_KEY")),
 		APISecret:     strings.TrimSpace(os.Getenv("POLYMARKET_API_SECRET")),
 		APIPass:       strings.TrimSpace(os.Getenv("POLYMARKET_API_PASSPHRASE")),
-		GammaBaseURL:  strings.TrimSpace(os.Getenv("POLYMARKET_GAMMA_BASE_URL")),
-		DataBaseURL:   strings.TrimSpace(os.Getenv("POLYMARKET_DATA_API_BASE_URL")),
 		CLOBHost:      strings.TrimSpace(os.Getenv("POLYMARKET_CLOB_HOST")),
 		GeoBlockToken: strings.TrimSpace(os.Getenv("POLYMARKET_GEO_BLOCK_TOKEN")),
 		SignatureType: model.POLY_GNOSIS_SAFE,
@@ -143,12 +139,6 @@ func (c EnvConfig) NewClient() (*Client, error) {
 	}
 	if c.Timeout > 0 {
 		opts = append(opts, WithHTTPClient(&http.Client{Transport: &http.Transport{Proxy: http.ProxyFromEnvironment}, Timeout: c.Timeout}))
-	}
-	if c.GammaBaseURL != "" {
-		opts = append(opts, WithGammaBaseURL(c.GammaBaseURL))
-	}
-	if c.DataBaseURL != "" {
-		opts = append(opts, WithDataAPIBaseURL(c.DataBaseURL))
 	}
 	if c.CLOBHost != "" {
 		opts = append(opts, WithCLOBHost(c.CLOBHost))

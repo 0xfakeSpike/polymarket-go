@@ -12,6 +12,42 @@ type PaginationPayload struct {
 	Data       json.RawMessage `json:"data"`
 }
 
+// FeeInfo is the platform fee metadata returned by CLOB market info.
+type FeeInfo struct {
+	Rate      float64 `json:"r,omitempty"`
+	Exponent  float64 `json:"e,omitempty"`
+	TakerOnly bool    `json:"to,omitempty"`
+}
+
+// ClobToken is one outcome token in CLOB market details.
+type ClobToken struct {
+	TokenID string `json:"t"`
+	Outcome string `json:"o"`
+}
+
+// MarketDetails mirrors @polymarket/clob-client-v2 MarketDetails.
+type MarketDetails struct {
+	ConditionID  string       `json:"c"`
+	Tokens       []*ClobToken `json:"t"`
+	MinTickSize  float64      `json:"mts"`
+	NegRisk      bool         `json:"nr"`
+	FeeDetails   *FeeInfo     `json:"fd,omitempty"`
+	MakerBaseFee float64      `json:"mbf,omitempty"`
+	TakerBaseFee float64      `json:"tbf,omitempty"`
+}
+
+// BuilderFeeRate stores builder maker/taker rates as fractions.
+type BuilderFeeRate struct {
+	Maker float64 `json:"maker"`
+	Taker float64 `json:"taker"`
+}
+
+// BuilderTradeParams filters builder-attributed trades.
+type BuilderTradeParams struct {
+	TradeParams
+	BuilderCode string `json:"builder_code,omitempty"`
+}
+
 // BookParams is one token/side pair for batch price endpoints.
 type BookParams struct {
 	TokenID string `json:"token_id"`
@@ -20,12 +56,12 @@ type BookParams struct {
 
 // TradeParams filters CLOB trades listing.
 type TradeParams struct {
-	ID            string `json:"id,omitempty"`
-	MakerAddress  string `json:"maker_address,omitempty"`
-	Market        string `json:"market,omitempty"`
-	AssetID       string `json:"asset_id,omitempty"`
-	Before        string `json:"before,omitempty"`
-	After         string `json:"after,omitempty"`
+	ID           string `json:"id,omitempty"`
+	MakerAddress string `json:"maker_address,omitempty"`
+	Market       string `json:"market,omitempty"`
+	AssetID      string `json:"asset_id,omitempty"`
+	Before       string `json:"before,omitempty"`
+	After        string `json:"after,omitempty"`
 }
 
 // OpenOrderParams filters open orders.
@@ -104,21 +140,21 @@ type HeartbeatResponse struct {
 
 // OpenOrder is one row from GET /data/orders.
 type OpenOrder struct {
-	ID             string   `json:"id"`
-	Status         string   `json:"status"`
-	Owner          string   `json:"owner"`
-	MakerAddress   string   `json:"maker_address"`
-	Market         string   `json:"market"`
-	AssetID        string   `json:"asset_id"`
-	Side           string   `json:"side"`
-	OriginalSize   string   `json:"original_size"`
-	SizeMatched    string   `json:"size_matched"`
-	Price          string   `json:"price"`
+	ID              string   `json:"id"`
+	Status          string   `json:"status"`
+	Owner           string   `json:"owner"`
+	MakerAddress    string   `json:"maker_address"`
+	Market          string   `json:"market"`
+	AssetID         string   `json:"asset_id"`
+	Side            string   `json:"side"`
+	OriginalSize    string   `json:"original_size"`
+	SizeMatched     string   `json:"size_matched"`
+	Price           string   `json:"price"`
 	AssociateTrades []string `json:"associate_trades"`
-	Outcome        string   `json:"outcome"`
-	CreatedAt      float64  `json:"created_at"`
-	Expiration     string   `json:"expiration"`
-	OrderType      string   `json:"order_type"`
+	Outcome         string   `json:"outcome"`
+	CreatedAt       float64  `json:"created_at"`
+	Expiration      string   `json:"expiration"`
+	OrderType       string   `json:"order_type"`
 }
 
 // Trade is a single trade from GET /data/trades.
@@ -144,8 +180,34 @@ type Trade struct {
 
 // TradesPage is one page from GET /data/trades.
 type TradesPage struct {
-	Trades     []Trade `json:"data"`
+	Trades     []Trade `json:"trades"`
 	NextCursor string  `json:"next_cursor"`
 	Limit      int     `json:"limit"`
 	Count      int     `json:"count"`
+}
+
+// UnmarshalJSON accepts the CLOB wire envelope whose trade rows are under "data".
+func (p *TradesPage) UnmarshalJSON(b []byte) error {
+	var wire struct {
+		Trades     []Trade `json:"data"`
+		NextCursor string  `json:"next_cursor"`
+		Limit      int     `json:"limit"`
+		Count      int     `json:"count"`
+	}
+	if err := json.Unmarshal(b, &wire); err != nil {
+		return err
+	}
+	p.Trades = wire.Trades
+	p.NextCursor = wire.NextCursor
+	p.Limit = wire.Limit
+	p.Count = wire.Count
+	return nil
+}
+
+// OpenOrdersPage is one page from GET /data/orders.
+type OpenOrdersPage struct {
+	Orders     []OpenOrder `json:"data"`
+	NextCursor string      `json:"next_cursor"`
+	Limit      int         `json:"limit"`
+	Count      int         `json:"count"`
 }

@@ -9,12 +9,17 @@ import (
 	"github.com/polymarket/go-order-utils/pkg/model"
 )
 
-// CreateOrder builds, signs, and posts a limit order (GTC/GTD and post-only flags).
-func (c *Client) CreateOrder(req OrderRequest, orderType string, deferExec, postOnly bool) (*OrderResponse, error) {
+// CreateOrder builds and signs a limit order without posting it.
+func (c *Client) CreateOrder(req OrderRequest) (*SignedOrderV2, error) {
+	return c.buildSignedLimitOrder(req)
+}
+
+// CreateAndPostOrder builds, signs, and posts a limit order.
+func (c *Client) CreateAndPostOrder(req OrderRequest, orderType string, postOnly, deferExec bool) (*OrderResponse, error) {
 	if orderType == "" {
 		orderType = OrderTypeGTC
 	}
-	signed, err := c.BuildSignedLimitOrder(req)
+	signed, err := c.CreateOrder(req)
 	if err != nil {
 		return nil, err
 	}
@@ -37,8 +42,7 @@ func (c *Client) validateOrderSignatureConfig() error {
 	}
 }
 
-// BuildSignedLimitOrder builds and signs a GTC-style limit order without posting.
-func (c *Client) BuildSignedLimitOrder(req OrderRequest) (*SignedOrderV2, error) {
+func (c *Client) buildSignedLimitOrder(req OrderRequest) (*SignedOrderV2, error) {
 	if err := c.validateOrderSignatureConfig(); err != nil {
 		return nil, err
 	}
@@ -130,6 +134,9 @@ func newOrderWireFromSigned(s *SignedOrderV2, owner, orderType string, deferExec
 func (c *Client) postSignedOrder(signed *SignedOrderV2, orderType string, deferExec, postOnly bool) (*OrderResponse, error) {
 	if c.apiKeyCredentials == nil {
 		return nil, fmt.Errorf("API key not set, please call SetAPIKeyCredentials first")
+	}
+	if postOnly && (orderType == OrderTypeFOK || orderType == OrderTypeFAK) {
+		return nil, fmt.Errorf("postOnly is not supported for FOK/FAK orders")
 	}
 	payload := newOrderWireFromSigned(signed, c.apiKeyCredentials.ApiKey, orderType, deferExec, postOnly)
 	jsonData, err := json.Marshal(payload)

@@ -1,11 +1,11 @@
 # polymarket-go
 
-Go client for [Polymarket](https://polymarket.com) **Gamma** (markets, search) and **CLOB** (order book, trading), plus **`pmctl`** (CLI) and **`polymarket-mcp`** (JSON-line stdio bridge for MCP hosts).
+Go client for the [Polymarket](https://polymarket.com) **CLOB** API, plus **`pmctl`** (CLI) and **`polymarket-mcp`** (JSON-line stdio bridge for MCP hosts).
 
 ## Features
 
-- **SDK** — import `github.com/0xfakeSpike/polymarket-go`; `Client` covers Gamma, Data API, CLOB, RFQ, and helpers aligned with common Polymarket client usage.
-- **CLI (`pmctl`)** — named tools with JSON params, optional reflection **`call`** for any exported `Client` method, and **`methods`** to list signatures.
+- **SDK** — import `github.com/0xfakeSpike/polymarket-go`; `Client` mirrors the public CLOB client surface in Go style.
+- **CLI (`pmctl`)** — named CLOB tools with JSON params, optional reflection **`call`** for exported `Client` methods, and **`methods`** to list signatures.
 - **MCP bridge** — same tool registry as the CLI over stdin/stdout; optional authenticated client via env.
 - **Examples** — under `examples/`.
 
@@ -33,15 +33,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	events, err := c.SearchEventsWithQuery("election")
+	book, err := c.GetOrderBook("<CLOB_TOKEN_ID>")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("events:", len(events))
+	fmt.Println("bids:", len(book.Bids), "asks:", len(book.Asks))
 }
 ```
 
-Prefer the **root import** above. The implementation also lives under `github.com/0xfakeSpike/polymarket-go/polymarket` for compatibility; new code should use the root path.
+Prefer the **root import** above. The implementation also lives under `github.com/0xfakeSpike/polymarket-go/polymarket` for users who want the internal package path explicitly.
 
 ## Install — binaries
 
@@ -76,12 +76,11 @@ Examples:
 
 ```bash
 pmctl tools
-pmctl tool -params '{"query":"election","limit":5}' search_events
 pmctl tool -params '{"token_id":"<CLOB_TOKEN_ID>"}' get_orderbook
-pmctl tool -params '{"tag_slug":"geopolitics","keyword":"iran","limit":10,"min_annualized_return":0.25}' rank_markets_by_annualized_return
 pmctl methods -long | head -20
 pmctl call GetOK
 pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
+pmctl call -args '["<CONDITION_ID>"]' GetClobMarketInfo
 ```
 
 `call` injects `context.Context` where needed; methods that take **functions** or **handler interfaces** (e.g. WebSocket runners) are not supported through reflection — use the SDK in Go.
@@ -99,7 +98,6 @@ One JSON object per input line; one JSON response per line. Specification and to
 ## Examples
 
 ```bash
-go run ./examples/public-search
 go run ./examples/orderbook "<CLOB_TOKEN_ID>"
 ```
 
@@ -110,9 +108,9 @@ cmd/pmctl              CLI entrypoint
 cmd/polymarket-mcp     MCP stdio entrypoint
 internal/cli/pmctl   CLI wiring (flags, stdout/stderr)
 internal/mcp/stdio   MCP JSON-line server
-internal/tools       Shared tool registry (search_events, get_orderbook, rank_markets_by_annualized_return, methods, client_call)
+internal/tools       Shared tool registry (get_orderbook, methods, client_call)
 internal/tools/invoke Reflection helpers for client_call
-polymarket/            Client implementation (same module, compatibility import path)
+polymarket/            CLOB client implementation
 examples/              Runnable examples
 docs/                  User and operator guides
 ```

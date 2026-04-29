@@ -14,12 +14,11 @@ This guide is the practical playbook for using `pmctl` in daily workflows.
 
 ```bash
 pmctl tools
-pmctl tool -params '{"query":"election","limit":5}' search_events
 pmctl tool -params '{"token_id":"<CLOB_TOKEN_ID>"}' get_orderbook
-pmctl tool -params '{"tag_slug":"geopolitics","keyword":"iran","limit":10,"min_annualized_return":0.25}' rank_markets_by_annualized_return
 pmctl methods -long
 pmctl call GetOK
 pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
+pmctl call -args '["<CONDITION_ID>"]' GetClobMarketInfo
 ```
 
 ## Auth and Safety

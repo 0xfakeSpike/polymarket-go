@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.10]
+
+### Changed
+- Refocus SDK surface on CLOB trading and metadata flows; remove deprecated Gamma/Data/RFQ/search/volume helpers and related types/tests.
+- Update CLI/MCP tooling and docs to match the streamlined CLOB-oriented API set.
+- Refresh root re-exports, endpoint wiring, and test coverage for current client behavior.
+
 ## [v1.0.9]
 
 ### Changed

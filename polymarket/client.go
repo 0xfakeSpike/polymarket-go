@@ -15,8 +15,6 @@ import (
 )
 
 const (
-	DefaultBaseURL   = "https://gamma-api.polymarket.com"
-	DataAPIBaseURL   = "https://data-api.polymarket.com"
 	CLOBHost         = "https://clob.polymarket.com"
 	DefaultTimeout   = 30 * time.Second
 	defaultTickCache = 5 * time.Minute
@@ -24,13 +22,11 @@ const (
 
 var defaultPolygonRPCURLs = []string{"https://api.zan.top/polygon-mainnet", "https://polygon-rpc.com"}
 
-// Client provides Polymarket Gamma search/markets APIs and full CLOB trading APIs.
+// Client provides Polymarket CLOB APIs.
 type Client struct {
 	httpClient *http.Client
 
-	baseURL        string
-	dataAPIBaseURL string
-	clobHost       string
+	clobHost string
 
 	ethClient       *ethclient.Client
 	chainID         *big.Int
@@ -49,7 +45,7 @@ type Client struct {
 	signatureType    model.SignatureType
 	// funderAddress is the order maker when using proxy/safe flows; zero means maker == signer (EOA).
 	funderAddress common.Address
-	builderSigner    BuilderSigner
+	builderSigner BuilderSigner
 
 	tickSizes   map[string]string
 	tickSizeAt  map[string]time.Time
@@ -57,6 +53,11 @@ type Client struct {
 
 	negRiskCache map[string]bool
 	feeRateCache map[string]int
+	feeInfoCache map[string]FeeInfo
+
+	tokenConditionMap map[string]string
+	builderFeeRates   map[string]BuilderFeeRate
+	cachedVersion     *int
 
 	// skipL2APIKeyBootstrap skips CreateOrDeriveAPIKey inside NewClient (public-only or manual creds).
 	skipL2APIKeyBootstrap bool
@@ -80,19 +81,20 @@ func NewClient(privateKeyHex string, opts ...ClientOption) (*Client, error) {
 	from := crypto.PubkeyToAddress(pk.PublicKey)
 
 	c := &Client{
-		privateKey:     pk,
-		fromAddress:    from,
-		baseURL:        DefaultBaseURL,
-		dataAPIBaseURL: DataAPIBaseURL,
-		clobHost:       CLOBHost,
-		polygonRPCURLs: defaultPolygonRPCURLs,
-		signatureType:  model.POLY_GNOSIS_SAFE,
-		tickSizes:      make(map[string]string),
-		tickSizeAt:     make(map[string]time.Time),
-		tickSizeTTL:    defaultTickCache,
-		negRiskCache:   make(map[string]bool),
-		feeRateCache:   make(map[string]int),
-		httpClient:     &http.Client{Transport: &http.Transport{Proxy: http.ProxyFromEnvironment}, Timeout: DefaultTimeout},
+		privateKey:        pk,
+		fromAddress:       from,
+		clobHost:          CLOBHost,
+		polygonRPCURLs:    defaultPolygonRPCURLs,
+		signatureType:     model.POLY_GNOSIS_SAFE,
+		tickSizes:         make(map[string]string),
+		tickSizeAt:        make(map[string]time.Time),
+		tickSizeTTL:       defaultTickCache,
+		negRiskCache:      make(map[string]bool),
+		feeRateCache:      make(map[string]int),
+		feeInfoCache:      make(map[string]FeeInfo),
+		tokenConditionMap: make(map[string]string),
+		builderFeeRates:   make(map[string]BuilderFeeRate),
+		httpClient:        &http.Client{Transport: &http.Transport{Proxy: http.ProxyFromEnvironment}, Timeout: DefaultTimeout},
 	}
 	for _, o := range opts {
 		o(c)
@@ -167,6 +169,30 @@ func (c *Client) ChainID() *big.Int { return new(big.Int).Set(c.chainID) }
 
 // CLOBHost returns the CLOB base URL.
 func (c *Client) Host() string { return c.clobHost }
+
+func (c *Client) ensureMetadataCaches() {
+	if c.tickSizes == nil {
+		c.tickSizes = make(map[string]string)
+	}
+	if c.tickSizeAt == nil {
+		c.tickSizeAt = make(map[string]time.Time)
+	}
+	if c.negRiskCache == nil {
+		c.negRiskCache = make(map[string]bool)
+	}
+	if c.feeRateCache == nil {
+		c.feeRateCache = make(map[string]int)
+	}
+	if c.feeInfoCache == nil {
+		c.feeInfoCache = make(map[string]FeeInfo)
+	}
+	if c.tokenConditionMap == nil {
+		c.tokenConditionMap = make(map[string]string)
+	}
+	if c.builderFeeRates == nil {
+		c.builderFeeRates = make(map[string]BuilderFeeRate)
+	}
+}
 
 func (c *Client) requireL1() error {
 	if c.privateKey == nil {

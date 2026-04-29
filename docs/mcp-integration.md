@@ -43,17 +43,6 @@ or on failure:
 
 All tools share the same definitions as `pmctl tool` (see `internal/tools`).
 
-### `search_events`
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `query` | string | yes | Search text. |
-| `limit` | int | no | Max events (default `10`). |
-
-```json
-{"tool":"search_events","params":{"query":"election","limit":5}}
-```
-
 ### `get_orderbook`
 
 | Field | Type | Required | Description |
@@ -62,22 +51,6 @@ All tools share the same definitions as `pmctl tool` (see `internal/tools`).
 
 ```json
 {"tool":"get_orderbook","params":{"token_id":"<CLOB_TOKEN_ID>"}}
-```
-
-### `rank_markets_by_annualized_return`
-
-Scan open events, compute favored-side PnL from live order books, and return markets sorted by `pnl.annualized_return` descending.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `tag_slug` | string | no | Gamma events tag filter (for example `geopolitics`). |
-| `keyword` | string | no | Case-insensitive keyword match on event title/subtitle/slug/description/category/subcategory. |
-| `events_limit` | int | no | Max events fetched from `/events/keyset` (default `100`). |
-| `limit` | int | no | Max ranked markets returned (default `20`). |
-| `min_annualized_return` | number | no | Only keep rows where `pnl.annualized_return >=` this value (decimal, e.g. `0.25` = 25%). |
-
-```json
-{"tool":"rank_markets_by_annualized_return","params":{"tag_slug":"geopolitics","keyword":"iran","limit":10,"min_annualized_return":0.25}}
 ```
 
 ### `methods`

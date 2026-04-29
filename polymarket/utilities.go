@@ -13,9 +13,44 @@ func OrderBookSummaryHash(book *Book) (string, error) {
 	if book == nil {
 		return "", fmt.Errorf("nil book")
 	}
-	cp := *book
-	cp.Hash = ""
-	b, err := json.Marshal(cp)
+	type orderSummary struct {
+		Price string `json:"price"`
+		Size  string `json:"size"`
+	}
+	levels := func(in []LimitOrder) []orderSummary {
+		out := make([]orderSummary, len(in))
+		for i, level := range in {
+			out[i] = orderSummary{
+				Price: strconv.FormatFloat(level.Price, 'f', -1, 64),
+				Size:  strconv.FormatFloat(level.Size, 'f', -1, 64),
+			}
+		}
+		return out
+	}
+	wire := struct {
+		Market         string         `json:"market"`
+		AssetID        string         `json:"asset_id"`
+		Timestamp      string         `json:"timestamp"`
+		Bids           []orderSummary `json:"bids"`
+		Asks           []orderSummary `json:"asks"`
+		MinOrderSize   string         `json:"min_order_size"`
+		TickSize       string         `json:"tick_size"`
+		NegRisk        bool           `json:"neg_risk"`
+		Hash           string         `json:"hash"`
+		LastTradePrice string         `json:"last_trade_price"`
+	}{
+		Market:         book.Market,
+		AssetID:        book.AssetID,
+		Timestamp:      book.Timestamp,
+		Bids:           levels(book.Bids),
+		Asks:           levels(book.Asks),
+		MinOrderSize:   book.MinOrderSize,
+		TickSize:       book.TickSize,
+		NegRisk:        book.NegRisk,
+		Hash:           "",
+		LastTradePrice: book.LastTradePrice,
+	}
+	b, err := json.Marshal(wire)
 	if err != nil {
 		return "", err
 	}

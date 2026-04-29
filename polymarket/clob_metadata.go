@@ -61,11 +61,20 @@ func parseTickSizeWire(raw json.RawMessage) (string, error) {
 
 // GetTickSize returns minimum tick size for tokenID (cached).
 func (c *Client) GetTickSize(tokenID string) (string, error) {
+	c.ensureMetadataCaches()
 	if tokenID == "" {
 		return "", fmt.Errorf("tokenID required")
 	}
 	if ts, ok := c.tickSizes[tokenID]; ok {
 		if at, ok2 := c.tickSizeAt[tokenID]; ok2 && time.Since(at) < c.tickSizeTTL {
+			return ts, nil
+		}
+	}
+	if conditionID, ok := c.tokenConditionMap[tokenID]; ok {
+		if _, err := c.GetClobMarketInfo(conditionID); err != nil {
+			return "", err
+		}
+		if ts, ok := c.tickSizes[tokenID]; ok {
 			return ts, nil
 		}
 	}
@@ -147,8 +156,17 @@ func parseNegRiskCLOBResponse(body []byte) (negRisk bool, apiErr string, err err
 
 // GetNegRisk returns whether the market for tokenID uses the neg-risk exchange contract (cached).
 func (c *Client) GetNegRisk(tokenID string) (bool, error) {
+	c.ensureMetadataCaches()
 	if v, ok := c.negRiskCache[tokenID]; ok {
 		return v, nil
+	}
+	if conditionID, ok := c.tokenConditionMap[tokenID]; ok {
+		if _, err := c.GetClobMarketInfo(conditionID); err != nil {
+			return false, err
+		}
+		if v, ok := c.negRiskCache[tokenID]; ok {
+			return v, nil
+		}
 	}
 	q := url.Values{}
 	q.Set("token_id", tokenID)
@@ -206,6 +224,7 @@ func parseFeeRateCLOBResponse(body []byte) (bps int, apiErr string, err error) {
 
 // GetFeeRateBps returns base fee rate in basis points for tokenID (cached).
 func (c *Client) GetFeeRateBps(tokenID string) (int, error) {
+	c.ensureMetadataCaches()
 	if v, ok := c.feeRateCache[tokenID]; ok {
 		return v, nil
 	}
@@ -224,6 +243,45 @@ func (c *Client) GetFeeRateBps(tokenID string) (int, error) {
 	}
 	c.feeRateCache[tokenID] = bps
 	return bps, nil
+}
+
+// GetFeeExponent returns fee exponent from CLOB market info.
+func (c *Client) GetFeeExponent(tokenID string) (float64, error) {
+	c.ensureMetadataCaches()
+	if info, ok := c.feeInfoCache[tokenID]; ok {
+		return info.Exponent, nil
+	}
+	if err := c.ensureMarketInfoCached(tokenID); err != nil {
+		return 0, err
+	}
+	return c.feeInfoCache[tokenID].Exponent, nil
+}
+
+func (c *Client) ensureMarketInfoCached(tokenID string) error {
+	c.ensureMetadataCaches()
+	if _, ok := c.feeInfoCache[tokenID]; ok {
+		return nil
+	}
+	conditionID := c.tokenConditionMap[tokenID]
+	if conditionID == "" {
+		body, err := c.clobRequest("GET", PathMarketByTokenPrefix+tokenID, nil, nil, nil)
+		if err != nil {
+			return err
+		}
+		var r struct {
+			ConditionID string `json:"condition_id"`
+		}
+		if err := json.Unmarshal(body, &r); err != nil {
+			return err
+		}
+		if r.ConditionID == "" {
+			return fmt.Errorf("failed to resolve condition id for token %s", tokenID)
+		}
+		conditionID = r.ConditionID
+		c.tokenConditionMap[tokenID] = conditionID
+	}
+	_, err := c.GetClobMarketInfo(conditionID)
+	return err
 }
 
 func priceValid(price float64, tickSize string) (bool, error) {

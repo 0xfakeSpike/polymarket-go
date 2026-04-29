@@ -18,16 +18,6 @@ func WithHTTPClient(h *http.Client) ClientOption {
 	return func(c *Client) { c.httpClient = h }
 }
 
-// WithGammaBaseURL sets the Polymarket Gamma API base URL.
-func WithGammaBaseURL(u string) ClientOption {
-	return func(c *Client) { c.baseURL = u }
-}
-
-// WithDataAPIBaseURL sets the data-api host (volume, etc.).
-func WithDataAPIBaseURL(u string) ClientOption {
-	return func(c *Client) { c.dataAPIBaseURL = u }
-}
-
 // WithCLOBHost sets the CLOB API base URL (no trailing slash).
 func WithCLOBHost(host string) ClientOption {
 	return func(c *Client) { c.clobHost = host }
@@ -116,8 +106,8 @@ func WithAPIKeyCredentials(cred *APIKeyCredentials) ClientOption {
 	}
 }
 
-// WithSkipL2APIKeyBootstrap skips the default [CreateOrDeriveAPIKey] call in [NewClient]
-// (e.g. Gamma/public CLOB only). Trading endpoints will still require [SetAPIKeyCredentials] later.
+// WithSkipL2APIKeyBootstrap skips the default [CreateOrDeriveAPIKey] call in [NewClient].
+// Trading endpoints will still require [SetAPIKeyCredentials] later.
 func WithSkipL2APIKeyBootstrap() ClientOption {
 	return func(c *Client) { c.skipL2APIKeyBootstrap = true }
 }
