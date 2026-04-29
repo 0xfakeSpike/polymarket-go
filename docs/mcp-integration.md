@@ -1,71 +1,100 @@
-# MCP integration with `polymarket-go`
+# MCP bridge (`polymarket-mcp`)
 
-This repository now separates **SDK** and **entrypoints**, and includes a runnable bridge command in `cmd/polymarket-mcp`.
+`polymarket-mcp` reads **one JSON request per line** from stdin and writes **one JSON response per line** to stdout. Host it behind any MCP server that can spawn a process and map tool calls to this protocol.
 
-## Recommended architecture
+## Request and response
 
-- Keep all Polymarket business logic in SDK packages.
-  - Public import path: `github.com/0xfakeSpike/polymarket-go`
-  - Compatibility implementation path: `github.com/0xfakeSpike/polymarket-go/polymarket`
-- MCP tool handlers should be thin adapters:
-  - parse tool arguments
-  - call SDK (`polymarket.Client`)
-  - map response/errors into MCP result format
-
-## Typical tool mapping
-
-- `search_events(query, limit)` -> `Client.SearchEventsWithQuery`
-- `get_orderbook(token_id)` -> `Client.GetOrderBook`
-- **`client_call(method, args)`** -> reflection bridge for **any exported** `Client` method (same rules as `pmctl call`). Example params:
+**Request** (single line):
 
 ```json
-{"tool":"client_call","params":{"method":"GetOrderBook","args":["<token_id>"]}}
-```
-
-Optional env **`POLYMARKET_MCP_PRIVATE_KEY`** (hex, with or without `0x`): if set, the bridge uses `NewClient` so trading and L2 endpoints work; if unset, a public client is used.
-
-Methods with **function or non-empty interface parameters** (WebSocket handlers, and so on) are rejected by the bridge; use the Go SDK for those.
-
-## Minimal handler pattern (pseudo)
-
-```go
-func handleSearchEvents(args map[string]any) (any, error) {
-  query := asString(args["query"])
-  limit := asIntDefault(args["limit"], 10)
-
-  c, err := polymarket.NewPublicClient()
-  if err != nil {
-    return nil, err
-  }
-  events, err := c.SearchEventsWithQuery(query)
-  if err != nil {
-    return nil, err
-  }
-  if len(events) > limit {
-    events = events[:limit]
-  }
-  return events, nil
+{
+  "tool": "<tool_name>",
+  "params": { }
 }
 ```
 
-## Runtime and security notes
+`params` is always a JSON **object** (use `{}` when empty).
 
-- For read-only MCP tools, use `NewPublicClient` and avoid private keys.
-- For trade/write tools, inject credentials via environment variables and never return secrets in tool output.
-- Keep request timeouts enabled (SDK default timeout is 30s).
+**Response** (single line):
 
-## Bridge command usage
+```json
+{
+  "ok": true,
+  "data": { }
+}
+```
 
-Current `cmd/polymarket-mcp` is a lightweight stdio JSON bridge that can sit behind a full MCP server adapter.
+or on failure:
 
-Input example (one JSON per line):
+```json
+{
+  "ok": false,
+  "error": "message"
+}
+```
+
+## Environment
+
+| Variable | When to set |
+|----------|-------------|
+| `POLYMARKET_MCP_PRIVATE_KEY` | Hex private key (`0x` optional). Enables `NewClient` (L2 bootstrap, trading). Omit for read-only `NewPublicClient`. |
+
+## Tools
+
+All tools share the same definitions as `pmctl tool` (see `internal/tools`).
+
+### `search_events`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `query` | string | yes | Search text. |
+| `limit` | int | no | Max events (default `10`). |
 
 ```json
 {"tool":"search_events","params":{"query":"election","limit":5}}
 ```
 
-Supported tool names:
+### `get_orderbook`
 
-- `search_events`
-- `get_orderbook`
-- `client_call`
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `token_id` | string | yes | CLOB token id. |
+
+```json
+{"tool":"get_orderbook","params":{"token_id":"<CLOB_TOKEN_ID>"}}
+```
+
+### `methods`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `long` | bool | no | If `true`, include per-method reflect signatures. |
+
+```json
+{"tool":"methods","params":{"long":true}}
+```
+
+### `client_call`
+
+Invoke any **exported** `polymarket.Client` method by name. Arguments are a JSON **array** in Go parameter order; `context.Context` parameters are injected and must not appear in `args`.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `method` | string | yes | Exported method name, e.g. `GetOrderBook`. |
+| `args` | array | no | Defaults to `[]`. |
+
+```json
+{"tool":"client_call","params":{"method":"GetOrderBook","args":["<CLOB_TOKEN_ID>"]}}
+```
+
+Methods whose parameters include **functions** or **non-empty interfaces** (e.g. WebSocket handlers) cannot be called this way.
+
+## Security
+
+- Treat `POLYMARKET_MCP_PRIVATE_KEY` like production credentials; scope host filesystem and logs.
+- Do not echo secrets in `data` payloads from custom wrappers; built-in tools return API-shaped data only.
+
+## Related
+
+- CLI equivalents: [README.md](../README.md#cli-pmctl)
+- Homebrew install: [homebrew-release.md](homebrew-release.md)

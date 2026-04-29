@@ -7,48 +7,44 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.7]
+
 ### Added
-- `pmctl methods` / `pmctl call` and MCP tool `client_call` to invoke any exported `*polymarket.Client` method via JSON arguments (`internal/clientcall`), without hand-writing one subcommand per API.
-- Optional `SKIP_HOMEBREW_TAP` repository variable (passed from Actions) to skip Homebrew tap commits when the tap repo is not ready yet.
-- Public root SDK import path via `github.com/0xfakeSpike/polymarket-go`.
-- CLI entrypoint `cmd/pmctl` for search and orderbook workflows.
-- MCP stdio bridge entrypoint `cmd/polymarket-mcp`.
-- Internal runtime layers in `internal/cli/pmctl` and `internal/mcpbridge`.
-- Usage examples in `examples/public-search` and `examples/orderbook`.
-- Documentation for MCP integration and versioning policy.
-- Initial Go module setup (`go.mod`/`go.sum`).
+- `pmctl methods`, `pmctl call`, and MCP `client_call` for invoking any exported `*Client` method with JSON arguments.
+- `SKIP_HOMEBREW_TAP` repository variable to skip Homebrew formula commits when the tap is not configured.
+- Root import `github.com/0xfakeSpike/polymarket-go`; `pmctl` and `polymarket-mcp` binaries; shared tool registry; examples under `examples/`.
+- Docs: MCP integration, Homebrew release, versioning.
 
 ### Changed
-- Repository layout reorganized to be suitable for a public SDK + tools project.
-- `polymarket/` path kept as compatibility layer, while root package is now preferred.
-- Homebrew docs and release checklist now center on creating `homebrew-tap` first (方案 A).
+- Public layout oriented around the root SDK module; `polymarket/` remains a supported import path.
+- CLI uses `pmctl tool -params '<json>' <name>` for named tools instead of separate top-level subcommands per workflow.
+- Homebrew documentation assumes a dedicated tap repository and token (see `docs/homebrew-release.md`).
 
 ## [v1.0.6]
 
 ### Changed
-- Homebrew release documentation and `RELEASE_CHECKLIST.md` aligned with tap-first setup (方案 A).
+- Homebrew release documentation and release checklist aligned with tap-first publishing.
 
 ### Notes
-- Use this tag after `0xfakeSpike/homebrew-tap` exists and `HOMEBREW_TAP_GITHUB_TOKEN` is configured, so GoReleaser can push `polymarket-go` and `polymarket-mcp` formulas.
+- Tag when `0xfakeSpike/homebrew-tap` exists and `HOMEBREW_TAP_GITHUB_TOKEN` is set so GoReleaser can push `polymarket-go` and `polymarket-mcp` formulas.
 
 ## [v1.0.1]
 
 ### Fixed
-- Removed private module dependency (`github.com/0xfakespike/everything`) that broke CI/release on GitHub runners.
-- Replaced external bool helper usage in search APIs with an internal helper.
-- Regenerated module metadata (`go.mod`/`go.sum`) to keep dependencies fully public.
+- Dropped private module dependency that broke CI and public `go get`.
+- Search helpers inlined where needed; public dependency graph is fully fetchable.
 
 ## [v1.0.2]
 
 ### Fixed
-- Split Homebrew publishing into two formulas (`polymarket-go` and `polymarket-mcp`) so GoReleaser can match build artifacts correctly during formula generation.
+- Homebrew: two formulas (`polymarket-go`, `polymarket-mcp`) so artifact names match GoReleaser builds.
 
 ## [v1.0.3]
 
 ### Fixed
-- Split GoReleaser archives per binary and aligned formula IDs to archive IDs, fixing Homebrew artifact matching in release workflow.
+- Homebrew: per-binary archives and aligned formula IDs for correct artifact resolution.
 
 ## [v1.0.4]
 
 ### Fixed
-- Enable `release.replace_existing_artifacts` in GoReleaser so re-runs or partial uploads do not fail with GitHub `422 already_exists` on release assets.
+- GoReleaser `release.replace_existing_artifacts` so release asset re-uploads do not fail with HTTP 422.

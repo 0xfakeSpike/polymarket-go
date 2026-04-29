@@ -1,37 +1,19 @@
 # polymarket-go
 
-`polymarket-go` is a Go SDK for Polymarket Gamma + CLOB APIs, with a repository layout ready for public use:
+Go client for [Polymarket](https://polymarket.com) **Gamma** (markets, search) and **CLOB** (order book, trading), plus **`pmctl`** (CLI) and **`polymarket-mcp`** (JSON-line stdio bridge for MCP hosts).
 
-- reusable SDK public entrypoint in repository root package
-- implementation package in `polymarket/` (kept for compatibility)
-- executable CLI in `cmd/pmctl`
-- MCP bridge command in `cmd/polymarket-mcp`
-- MCP integration guide in `docs/mcp-integration.md`
+## Features
 
-## Project layout
+- **SDK** — import `github.com/0xfakeSpike/polymarket-go`; `Client` covers Gamma, Data API, CLOB, RFQ, and helpers aligned with common Polymarket client usage.
+- **CLI (`pmctl`)** — named tools with JSON params, optional reflection **`call`** for any exported `Client` method, and **`methods`** to list signatures.
+- **MCP bridge** — same tool registry as the CLI over stdin/stdout; optional authenticated client via env.
+- **Examples** — under `examples/`.
 
-```text
-.
-├── cmd/
-│   └── pmctl/                # CLI entrypoint
-│   └── polymarket-mcp/       # MCP stdio bridge entrypoint
-├── internal/
-│   ├── cli/pmctl/            # CLI app layer (business logic)
-│   └── mcpbridge/            # MCP bridge runtime layer
-├── examples/
-│   ├── public-search/
-│   └── orderbook/
-├── docs/
-│   └── mcp-integration.md    # MCP integration approach
-├── polymarket/               # compatibility + implementation package
-├── doc.go                    # root SDK package docs
-├── sdk_bridge.go             # root SDK bridge exports
-├── VERSIONING.md             # semver and deprecation rules
-├── go.mod
-└── README.md
-```
+## Requirements
 
-## Install SDK
+- **Go** `1.24+` (see `go.mod`).
+
+## Install — library
 
 ```bash
 go get github.com/0xfakeSpike/polymarket-go
@@ -41,52 +23,77 @@ go get github.com/0xfakeSpike/polymarket-go
 package main
 
 import (
-  "fmt"
+	"fmt"
 
-  "github.com/0xfakeSpike/polymarket-go"
+	"github.com/0xfakeSpike/polymarket-go"
 )
 
 func main() {
-  c, err := polymarket.NewPublicClient()
-  if err != nil {
-    panic(err)
-  }
-  events, err := c.SearchEventsWithQuery("election")
-  if err != nil {
-    panic(err)
-  }
-  fmt.Println("events:", len(events))
+	c, err := polymarket.NewPublicClient()
+	if err != nil {
+		panic(err)
+	}
+	events, err := c.SearchEventsWithQuery("election")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("events:", len(events))
 }
 ```
 
-## Use CLI
+Prefer the **root import** above. The implementation also lives under `github.com/0xfakeSpike/polymarket-go/polymarket` for compatibility; new code should use the root path.
+
+## Install — binaries
+
+### Homebrew
 
 ```bash
-go run ./cmd/pmctl search-events -q "trump" -limit 5
-go run ./cmd/pmctl orderbook -token-id "<CLOB_TOKEN_ID>"
+brew tap 0xfakeSpike/tap
+brew install polymarket-go polymarket-mcp
 ```
 
-Expose **any exported** `Client` method without writing a wrapper per command:
+Tap setup and release automation: **[docs/homebrew-release.md](docs/homebrew-release.md)**.
+
+### From source
 
 ```bash
-go run ./cmd/pmctl methods
-go run ./cmd/pmctl methods -long
-go run ./cmd/pmctl call GetOK
-go run ./cmd/pmctl call GetOrderBook -args '["<CLOB_TOKEN_ID>"]'
+go install github.com/0xfakeSpike/polymarket-go/cmd/pmctl@latest
+go install github.com/0xfakeSpike/polymarket-go/cmd/polymarket-mcp@latest
 ```
 
-Arguments are a **JSON array** in parameter order; `context.Context` is injected automatically. Methods that take **functions or handler interfaces** (for example WebSocket runners) cannot be used through `call` and should use the Go SDK instead.
+## CLI (`pmctl`)
 
-## MCP integration
+| Command | Purpose |
+|--------|---------|
+| `pmctl tools` | JSON list of registered tools (name, description, `read_only`). |
+| `pmctl tool [flags] <name>` | Run one tool; `-params` is a JSON **object** (see [docs/mcp-integration.md](docs/mcp-integration.md)). |
+| `pmctl methods [-long]` | List exported `Client` method names; `-long` adds reflect signatures (for `call`). |
+| `pmctl call [flags] <Method>` | Call any exported `Client` method; `-args` is a JSON **array** in parameter order. |
 
-See `docs/mcp-integration.md` for how to expose this SDK as MCP tools for Cursor/Claude/Desktop clients.
+**Client mode flags** (for `tool` and `call`): `-public` (default `true`), or `-public=false` with `-private-key` / **`PMCTL_PRIVATE_KEY`**.
 
-### MCP bridge quickstart
+Examples:
 
 ```bash
-echo '{"tool":"search_events","params":{"query":"election","limit":3}}' | \
-  go run ./cmd/polymarket-mcp
+pmctl tools
+pmctl tool -params '{"query":"election","limit":5}' search_events
+pmctl tool -params '{"token_id":"<CLOB_TOKEN_ID>"}' get_orderbook
+pmctl methods -long | head -20
+pmctl call GetOK
+pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
 ```
+
+`call` injects `context.Context` where needed; methods that take **functions** or **handler interfaces** (e.g. WebSocket runners) are not supported through reflection — use the SDK in Go.
+
+## MCP (`polymarket-mcp`)
+
+One JSON object per input line; one JSON response per line. Specification and tool schemas: **[docs/mcp-integration.md](docs/mcp-integration.md)**.
+
+**Environment**
+
+| Variable | Effect |
+|----------|--------|
+| `POLYMARKET_MCP_PRIVATE_KEY` | If set, `NewClient` (trading / L2 bootstrap). If unset, public client only. |
 
 ## Examples
 
@@ -95,28 +102,36 @@ go run ./examples/public-search
 go run ./examples/orderbook "<CLOB_TOKEN_ID>"
 ```
 
-## Versioning
+## Repository layout
 
-See `VERSIONING.md`.
-
-## Contributing
-
-See `CONTRIBUTING.md`.
-
-## Changelog
-
-See `CHANGELOG.md`.
-
-## Release
-
-See `RELEASE_CHECKLIST.md`.
-
-## Homebrew
-
-```bash
-brew tap 0xfakeSpike/tap
-brew install polymarket-go
-brew install polymarket-mcp
+```text
+cmd/pmctl              CLI entrypoint
+cmd/polymarket-mcp     MCP stdio entrypoint
+internal/cli/pmctl   CLI wiring (flags, stdout/stderr)
+internal/mcp/stdio   MCP JSON-line server
+internal/tools       Shared tool registry (search_events, get_orderbook, methods, client_call)
+internal/tools/invoke Reflection helpers for client_call
+polymarket/            Client implementation (same module, compatibility import path)
+examples/              Runnable examples
+docs/                  User and operator guides
 ```
 
-Homebrew publishing uses a tap repo **`0xfakeSpike/homebrew-tap`**; create it first, then follow `docs/homebrew-release.md` (方案 A).
+## Documentation
+
+| Document | Content |
+|----------|---------|
+| [docs/mcp-integration.md](docs/mcp-integration.md) | MCP wire format, tools, parameters, security. |
+| [docs/homebrew-release.md](docs/homebrew-release.md) | Tap repository, tokens, tags, optional skip of formula push. |
+| [VERSIONING.md](VERSIONING.md) | SemVer and API stability. |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Development and PR expectations. |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pre-release checks. |
+| [CHANGELOG.md](CHANGELOG.md) | Release history. |
+
+## Security
+
+- Never commit private keys. Use env vars or secret managers.
+- MCP and CLI can perform trading when a private key is supplied; restrict access to the process and logs.
+
+## License
+
+See [LICENSE](LICENSE).

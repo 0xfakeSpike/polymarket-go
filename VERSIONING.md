@@ -1,20 +1,19 @@
-# Versioning Policy
+# Versioning
 
-This repository follows [Semantic Versioning](https://semver.org/).
+This project follows [Semantic Versioning 2.0](https://semver.org/).
 
-## Stability contract
+## API stability
 
-- `v1.x.y`
-  - No breaking API changes for public root import path: `github.com/0xfakeSpike/polymarket-go`
-  - Backward-compatible additions and fixes are allowed.
-- Breaking changes require a major bump (`v2+`).
+| Range | Guarantee |
+|-------|-----------|
+| **v1.x.y** | No breaking changes to the public API of **`github.com/0xfakeSpike/polymarket-go`**. Additive changes and fixes are allowed. |
+| **v2+** | Used when a breaking change to the public API is required. |
 
-## Compatibility path
+## Import paths
 
-The subpackage path `github.com/0xfakeSpike/polymarket-go/polymarket` remains available for compatibility, but new integrations should prefer the root package.
+- **Preferred:** `github.com/0xfakeSpike/polymarket-go` (root package).
+- **Also published:** `github.com/0xfakeSpike/polymarket-go/polymarket` — same types; kept for existing importers. Prefer the root path for new code.
 
-## Deprecation process
+## Deprecations
 
-1. Mark symbols or paths as deprecated in docs/comments.
-2. Keep behavior working for at least one minor release line.
-3. Remove only in the next major release.
+Deprecated symbols are marked in GoDoc. Deprecated behavior remains available for at least one minor **v1** line; removal happens only in a **major** bump.

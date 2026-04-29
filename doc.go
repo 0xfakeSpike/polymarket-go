@@ -1,7 +1,6 @@
-// Package polymarket is the public SDK entrypoint for this repository.
+// Package polymarket is the stable import path for the Polymarket Go client.
 //
-// New applications should import:
-//   github.com/0xfakeSpike/polymarket-go
+//	import "github.com/0xfakeSpike/polymarket-go"
 //
-// Legacy path github.com/0xfakeSpike/polymarket-go/polymarket is still available.
+// See README.md for CLI, MCP, and module layout.
 package polymarket

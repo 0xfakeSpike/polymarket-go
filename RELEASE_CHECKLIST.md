@@ -1,36 +1,38 @@
-# Release Checklist
+# Release checklist
 
-Use this checklist before tagging a release (for example `v1.0.0`).
+Run through this list before tagging a new **`v*`** release.
 
-## Quality gates
+## Code quality
 
-- [ ] `go mod tidy` produces no unexpected changes.
-- [ ] `make fmt` passes.
-- [ ] `make vet` passes.
-- [ ] `make test` passes.
-- [ ] CLI smoke test:
-  - [ ] `go run ./cmd/pmctl search-events -q "election" -limit 1`
-  - [ ] `go run ./cmd/pmctl orderbook -token-id "<token_id>"`
-- [ ] MCP bridge smoke test:
-  - [ ] `echo '{"tool":"search_events","params":{"query":"election","limit":1}}' | go run ./cmd/polymarket-mcp`
+- [ ] `go mod tidy` — no unexpected diff.
+- [ ] `make fmt` — passes.
+- [ ] `make vet` — passes.
+- [ ] `make test` — passes.
 
-## Docs and compatibility
+## CLI and MCP smoke
 
-- [ ] `README.md` reflects current commands and paths.
-- [ ] `CHANGELOG.md` has release notes under a new version heading.
-- [ ] `VERSIONING.md` still matches release policy.
-- [ ] Any deprecations are explicitly documented.
+- [ ] `go run ./cmd/pmctl tools`
+- [ ] `go run ./cmd/pmctl tool -params '{"query":"election","limit":1}' search_events`
+- [ ] `echo '{"tool":"search_events","params":{"query":"election","limit":1}}' | go run ./cmd/polymarket-mcp`
 
-## Tag and publish
+## Documentation
 
-- [ ] Create release commit.
-- [ ] Create git tag (example: `git tag v1.0.0`).
-- [ ] Push commits and tags.
-- [ ] Publish GitHub release notes from `CHANGELOG.md`.
+- [ ] `README.md` matches current commands and flags.
+- [ ] `docs/` updated if wire format or tools changed.
+- [ ] `CHANGELOG.md` — add a **`[vX.Y.Z]`** section with user-facing notes.
 
-## Homebrew tap (方案 A: required for `brew install`)
+## Version and publish
 
-- [ ] Tap repository exists: `https://github.com/0xfakeSpike/homebrew-tap` (see `docs/homebrew-release.md`).
-- [ ] `polymarket-go` has Actions secret **`HOMEBREW_TAP_GITHUB_TOKEN`** with **Contents: write** on that tap repo.
-- [ ] Repository variable **`SKIP_HOMEBREW_TAP`** is **unset** or **`false`** (otherwise formulas are not pushed).
-- [ ] After pushing a `v*` tag, confirm the **release** workflow is green and the tap repo received formula commits.
+- [ ] Choose semver (`VERSIONING.md`).
+- [ ] Commit release notes.
+- [ ] `git tag vX.Y.Z && git push origin vX.Y.Z`
+- [ ] Confirm GitHub Actions **release** workflow succeeds.
+- [ ] Publish or edit GitHub Release notes from `CHANGELOG.md` if you maintain them manually.
+
+## Homebrew (if publishing formulas)
+
+- [ ] Tap **`0xfakeSpike/homebrew-tap`** exists.
+- [ ] `HOMEBREW_TAP_GITHUB_TOKEN` is set on **`polymarket-go`** with push access to the tap.
+- [ ] `SKIP_HOMEBREW_TAP` unset or `false` unless intentionally skipping formula push.
+
+See **[docs/homebrew-release.md](docs/homebrew-release.md)** for details.

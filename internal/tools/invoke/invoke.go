@@ -1,5 +1,5 @@
-// Package clientcall invokes *polymarket.Client methods by name with JSON arguments (CLI/MCP bridge).
-package clientcall
+// Package invoke invokes *polymarket.Client methods by name with JSON arguments (CLI/MCP bridge).
+package invoke
 
 import (
 	"context"

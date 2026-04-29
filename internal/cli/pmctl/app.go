@@ -5,6 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
+	"strings"
+
+	"github.com/0xfakeSpike/polymarket-go/internal/tools"
 )
 
 type App struct {
@@ -18,83 +22,72 @@ func (a App) Run(args []string) int {
 		return 2
 	}
 
-	switch args[0] {
-	case "search-events":
-		if err := a.runSearchEvents(args[1:]); err != nil {
-			a.fail(err)
-			return 1
-		}
-	case "orderbook":
-		if err := a.runOrderbook(args[1:]); err != nil {
-			a.fail(err)
-			return 1
-		}
-	case "methods":
-		if err := a.runMethods(args[1:]); err != nil {
-			a.fail(err)
-			return 1
-		}
-	case "call":
-		if err := a.runCall(args[1:]); err != nil {
-			a.fail(err)
-			return 1
-		}
-	default:
+	cmds := map[string]func([]string) error{
+		"tools":   a.runTools,
+		"tool":    a.runTool,
+		"methods": a.runMethods,
+		"call":    a.runCall,
+	}
+	run, ok := cmds[args[0]]
+	if !ok {
 		a.usage()
 		return 2
 	}
-
+	if err := run(args[1:]); err != nil {
+		a.fail(err)
+		return 1
+	}
 	return 0
 }
 
-func (a App) runSearchEvents(args []string) error {
-	fs := flag.NewFlagSet("search-events", flag.ContinueOnError)
+func (a App) runTools(args []string) error {
+	fs := flag.NewFlagSet("tools", flag.ContinueOnError)
 	fs.SetOutput(a.Stderr)
-	query := fs.String("q", "", "search query")
-	limit := fs.Int("limit", 10, "max events")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	if *query == "" {
-		return fmt.Errorf("missing -q")
+	if fs.NArg() != 0 {
+		return fmt.Errorf("usage: pmctl tools")
 	}
-
-	c, err := newClientFromFlags(true, "")
-	if err != nil {
-		return err
-	}
-	events, err := c.SearchEventsWithQuery(*query)
-	if err != nil {
-		return err
-	}
-	if *limit > 0 && len(events) > *limit {
-		events = events[:*limit]
-	}
-
-	return a.printJSON(events)
+	return a.printJSON(tools.List())
 }
 
-func (a App) runOrderbook(args []string) error {
-	fs := flag.NewFlagSet("orderbook", flag.ContinueOnError)
+func (a App) runTool(args []string) error {
+	fs := flag.NewFlagSet("tool", flag.ContinueOnError)
 	fs.SetOutput(a.Stderr)
-	tokenID := fs.String("token-id", "", "CLOB token id")
+	public := fs.Bool("public", true, "use public read-only client (no private key)")
+	pk := fs.String("private-key", "", "hex private key for authenticated client (or env PMCTL_PRIVATE_KEY)")
+	paramsJSON := fs.String("params", "{}", "JSON object tool params")
+	paramsFile := fs.String("params-file", "", "read JSON params from file (overrides -params)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	if *tokenID == "" {
-		return fmt.Errorf("missing -token-id")
+	if fs.NArg() != 1 {
+		return fmt.Errorf("usage: pmctl tool [flags] <tool_name>")
 	}
 
-	c, err := newClientFromFlags(true, "")
+	raw := []byte(*paramsJSON)
+	if *paramsFile != "" {
+		b, err := os.ReadFile(*paramsFile)
+		if err != nil {
+			return err
+		}
+		raw = b
+	}
+	raw = []byte(strings.TrimSpace(string(raw)))
+	if len(raw) == 0 {
+		raw = []byte("{}")
+	}
+
+	c, err := newClientFromFlags(*public, *pk)
 	if err != nil {
 		return err
 	}
-	book, err := c.GetOrderBook(*tokenID)
+	result, err := tools.Call(c, fs.Arg(0), raw)
 	if err != nil {
 		return err
 	}
-
-	return a.printJSON(book)
+	return a.printJSON(result)
 }
 
 func (a App) printJSON(v any) error {
@@ -107,19 +100,29 @@ func (a App) usage() {
 	fmt.Fprintf(a.Stderr, `pmctl - Polymarket CLI
 
 Usage:
-  pmctl search-events -q "<query>" [-limit 10]
-  pmctl orderbook -token-id "<token_id>"
+  pmctl tools
+  pmctl tool [flags] <tool_name>
   pmctl methods [-long]
   pmctl call [flags] <ClientMethod>   # JSON array args; see "pmctl methods -long"
 
 Examples:
+  pmctl tool -params '{"query":"trump","limit":5}' search_events
+  pmctl tool -params '{"token_id":"<token_id>"}' get_orderbook
   pmctl call GetOK
-  pmctl call GetOrderBook -args '["<token_id>"]'
-  pmctl call Search -args '[{"q":"election","type":"events"}]'
-  pmctl call CreateOrder -public=false -private-key "$PMCTL_PRIVATE_KEY" -args '[...]'
+  pmctl call -args '["<token_id>"]' GetOrderBook
+  pmctl call -args '[{"q":"election","type":"events"}]' Search
+  pmctl call -public=false -private-key "$PMCTL_PRIVATE_KEY" -args '[...]' CreateOrder
 `)
 }
 
 func (a App) fail(err error) {
 	fmt.Fprintln(a.Stderr, "error:", err)
+}
+
+func mustMarshalJSON(v any) json.RawMessage {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }

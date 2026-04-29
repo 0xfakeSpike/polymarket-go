@@ -1,16 +1,16 @@
-// Package polymarket implements Polymarket Gamma (markets, search) and CLOB trading APIs,
-// aligned with @polymarket/clob-client. [NewClient] obtains L2 API credentials by default;
-// use [WithSkipL2APIKeyBootstrap] or [WithAPIKeyCredentials] to override.
+// Package polymarket implements the Polymarket Gamma (markets, search), Data API, and CLOB client.
 //
-// Deprecated: for new applications, import the root package
-// "github.com/0xfakeSpike/polymarket-go". This subpackage remains as a compatibility path.
-// Default order signature type is POLY_GNOSIS_SAFE (wire value 2), matching polymarket.com POST /order.
-// You must set the Safe maker with [WithPolymarketSafeMaker] or [WithFunderAddress]; pure EOA trading
-// uses [WithSignatureType] with go-order-utils model.EOA.
+// Prefer importing the module root:
 //
-// To always sign against the neg-risk exchange contract (fixed verifyingContract), use
-// [WithForceNegRiskSigning] or [Client.SetForceNegRiskSigning].
+//	import "github.com/0xfakeSpike/polymarket-go"
 //
-// Non-CLOB HTTP: use [Client.GammaGET]/[Client.GammaPOST] for the Gamma API host and
-// [Client.DataGET]/[Client.DataPOST] for the Data API host (paths must start with "/").
+// The polymarket/ path provides the same [Client] for existing importers.
+//
+// [NewClient] obtains L2 API credentials by default; use [WithSkipL2APIKeyBootstrap] or
+// [WithAPIKeyCredentials] to change that. Default order signature type is POLY_GNOSIS_SAFE (wire value 2).
+// Set the Safe maker with [WithPolymarketSafeMaker] or [WithFunderAddress]; EOA flows use [WithSignatureType]
+// with go-order-utils model.EOA. For a fixed neg-risk verifying contract, use [WithForceNegRiskSigning] or
+// [Client.SetForceNegRiskSigning].
+//
+// Gamma and Data hosts: [Client.GammaGET], [Client.GammaPOST], [Client.DataGET], [Client.DataPOST] (paths start with "/").
 package polymarket

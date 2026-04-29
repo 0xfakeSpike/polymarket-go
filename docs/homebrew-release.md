@@ -1,83 +1,69 @@
-# Homebrew release guide (recommended: tap repository)
+# Homebrew tap and releases
 
-Releases use GoReleaser in GitHub Actions (push tag `v*`) to publish **GitHub Release** assets and commit **Homebrew formulas** into your tap repository.
+Releases are built with **GoReleaser** on **GitHub Actions** when you push a tag matching `v*`. Each release publishes:
 
-## Recommended path: create the tap first (方案 A)
+- GitHub Release assets (`pmctl`, `polymarket-mcp`, archives, `checksums.txt`)
+- Formula updates in the tap repository **`0xfakeSpike/homebrew-tap`** (`polymarket-go`, `polymarket-mcp`)
 
-Do these **before** the first successful Homebrew publish.
+## Prerequisites
 
-### 1) Create the tap repository on GitHub
+### 1. Tap repository
 
-The tap must exist at exactly:
+Create **`0xfakeSpike/homebrew-tap`** on GitHub (name must match `.goreleaser.yaml`):
 
-- `https://github.com/0xfakeSpike/homebrew-tap`
+1. [Create repository](https://github.com/new) under owner `0xfakeSpike`.
+2. Repository name: **`homebrew-tap`**.
+3. Add a README when prompted.
 
-Steps:
+### 2. Actions secret on `polymarket-go`
 
-1. Open [github.com/new](https://github.com/new).
-2. **Owner:** `0xfakeSpike`
-3. **Repository name:** `homebrew-tap` (must match `.goreleaser.yaml`; Homebrew convention is `homebrew-<something>`).
-4. Visibility: **Public** is typical for taps (private works if your token can access it).
-5. Check **Add a README**, then create the repository.
+Fine-grained PAT (or classic PAT) with **`Contents: Read and write`** on **`0xfakeSpike/homebrew-tap`**:
 
-If this repo is missing, GoReleaser fails with **`404 Not Found`** on `GET .../repos/0xfakeSpike/homebrew-tap`.
+| Secret name | Value |
+|-------------|--------|
+| `HOMEBREW_TAP_GITHUB_TOKEN` | Token with push access to the tap repo |
 
-### 2) Token for pushing formulas into the tap
+GitHub Actions provides `GITHUB_TOKEN` for uploads to **`0xfakeSpike/polymarket-go`**; the extra secret is only for cross-repo formula commits.
 
-Create a **fine-grained personal access token** that can write to **`0xfakeSpike/homebrew-tap`** (at minimum **Contents: Read and write**).
+### 3. Optional: binaries without tap
 
-Add it to **`0xfakeSpike/polymarket-go`**:
+If formulas must not be pushed yet, set a repository **variable** on `polymarket-go`:
 
-- **Settings → Secrets and variables → Actions → New repository secret**
-- Name: **`HOMEBREW_TAP_GITHUB_TOKEN`**
-- Value: the token
+| Variable | Value |
+|----------|--------|
+| `SKIP_HOMEBREW_TAP` | `true` |
 
-The workflow already uses the default **`GITHUB_TOKEN`** for uploads to **`polymarket-go`** releases.
+Remove it or set to `false` when the tap is ready.
 
-### 3) Tag to trigger release
+## Publish a version
 
 ```bash
-git tag v1.0.6
-git push origin v1.0.6
+git tag v1.0.7
+git push origin v1.0.7
 ```
 
-This runs `.github/workflows/release.yml`, which builds `pmctl` and `polymarket-mcp`, uploads archives to the GitHub Release, and pushes **`polymarket-go.rb`** and **`polymarket-mcp.rb`** into the tap.
+Wait for the **release** workflow on `polymarket-go`, then verify formulas on `homebrew-tap`.
 
-### 4) Install via Homebrew
-
-After the workflow succeeds:
+## Install for end users
 
 ```bash
 brew tap 0xfakeSpike/tap
-brew install polymarket-go
-brew install polymarket-mcp
+brew install polymarket-go polymarket-mcp
 ```
 
-### 5) Optional: verify GoReleaser config locally
+## Local GoReleaser check
 
 ```bash
 go install github.com/goreleaser/goreleaser/v2@latest
 goreleaser check
 ```
 
----
+## Reference
 
-## Optional: release binaries only (no tap)
+| Symptom | What to verify |
+|---------|----------------|
+| Tap push fails | `HOMEBREW_TAP_GITHUB_TOKEN` scopes and expiry; tap repo exists and name is `homebrew-tap`. |
+| Release asset upload errors | `.goreleaser.yaml` sets `release.replace_existing_artifacts` for safe retries; or delete the draft/broken release and tag again. |
+| Workflow not triggered | Tag must match `v*`. |
 
-If the tap is not ready yet, you can set a **repository variable** on `polymarket-go`:
-
-- **Settings → Secrets and variables → Actions → Variables**
-- Name: **`SKIP_HOMEBREW_TAP`**
-- Value: **`true`**
-
-The workflow passes this to GoReleaser; formula commits are skipped so the **GitHub Release** can still succeed. Remove the variable (or set to `false`) when you adopt **方案 A**.
-
----
-
-## Troubleshooting
-
-- **`404 ... homebrew-tap`:** Create the repo (section 1) or fix the name to match `.goreleaser.yaml`.
-- **`401 Bad credentials` on tap:** Fix `HOMEBREW_TAP_GITHUB_TOKEN` scope or expiry.
-- **`422 ... already_exists` on release assets:** Partial upload + retry. This repo sets `release.replace_existing_artifacts: true` in `.goreleaser.yaml`, or delete the broken release and tag again.
-- **Tag workflow does not run:** Tag must match `v*`.
-- **Formula name clash:** Rename `brews.name` in `.goreleaser.yaml`.
+Configuration: `.goreleaser.yaml`, workflow: `.github/workflows/release.yml`.

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/0xfakeSpike/polymarket-go/internal/mcpbridge"
+	"github.com/0xfakeSpike/polymarket-go/internal/mcp/stdio"
 )
 
 // This command provides a tiny stdio bridge intended for MCP server adapters.
 // Input: one JSON request per line. Output: one JSON response per line.
 func main() {
-	srv, err := mcpbridge.New(os.Stdin, os.Stdout)
+	srv, err := stdio.New(os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)

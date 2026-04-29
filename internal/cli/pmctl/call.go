@@ -1,12 +1,13 @@
 package pmctl
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/0xfakeSpike/polymarket-go/internal/clientcall"
+	"github.com/0xfakeSpike/polymarket-go/internal/tools"
 )
 
 func (a App) runMethods(args []string) error {
@@ -16,23 +17,13 @@ func (a App) runMethods(args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	names := clientcall.ListClientMethods()
-	if !*long {
-		return a.printJSON(names)
+	result, err := tools.Call(nil, "methods", mustMarshalJSON(map[string]any{
+		"long": *long,
+	}))
+	if err != nil {
+		return err
 	}
-	type row struct {
-		Name string `json:"name"`
-		Sig  string `json:"sig,omitempty"`
-	}
-	out := make([]row, 0, len(names))
-	for _, n := range names {
-		sig, err := clientcall.MethodHelp(n)
-		if err != nil {
-			sig = ""
-		}
-		out = append(out, row{Name: n, Sig: sig})
-	}
-	return a.printJSON(out)
+	return a.printJSON(result)
 }
 
 func (a App) runCall(args []string) error {
@@ -62,12 +53,19 @@ func (a App) runCall(args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(fs.Args()) < 1 {
-		return fmt.Errorf("usage: pmctl call [flags] <MethodName>\nexample: pmctl call GetOK\nexample: pmctl call GetOrderBook -args '[\"TOKEN_ID\"]'")
+	if fs.NArg() != 1 {
+		return fmt.Errorf("usage: pmctl call [flags] <MethodName>\nexample: pmctl call GetOK\nexample: pmctl call -args '[\"TOKEN_ID\"]' GetOrderBook")
 	}
 	method := fs.Args()[0]
 
-	result, err := clientcall.Invoke(c, method, raw)
+	params, err := json.Marshal(map[string]any{
+		"method": method,
+		"args":   json.RawMessage(raw),
+	})
+	if err != nil {
+		return err
+	}
+	result, err := tools.Call(c, "client_call", params)
 	if err != nil {
 		return err
 	}
