@@ -13,7 +13,7 @@ func (c *Client) GetNotifications() (json.RawMessage, error) {
 		return nil, err
 	}
 	path := PathNotifications
-	h, err := c.l2Headers("GET", path, "", true)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (c *Client) DropNotifications(params *DropNotificationParams) error {
 		return err
 	}
 	path := PathNotifications
-	h, err := c.l2Headers("DELETE", path, "", false)
+	h, err := c.l2Headers("DELETE", path, "")
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (c *Client) GetBalanceAllowance(params *BalanceAllowanceParams) (BalanceAll
 		return BalanceAllowanceResponse{}, err
 	}
 	path := PathBalanceAllowance
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return BalanceAllowanceResponse{}, err
 	}
@@ -75,7 +75,7 @@ func (c *Client) UpdateBalanceAllowance(params *BalanceAllowanceParams) error {
 		return err
 	}
 	path := PathBalanceUpdate
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (c *Client) PostHeartbeat(heartbeatID *string) (*HeartbeatResponse, error) 
 		return nil, err
 	}
 	path := PathHeartbeats
-	h, err := c.l2Headers("POST", path, string(b), false)
+	h, err := c.l2Headers("POST", path, string(b))
 	if err != nil {
 		return nil, err
 	}

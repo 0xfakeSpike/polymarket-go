@@ -142,7 +142,7 @@ func (c *Client) buildL2AuthHeaders(method, requestPath, body string) (map[strin
 		"POLY_ADDRESS":    c.fromAddress.Hex(),
 		"POLY_SIGNATURE":  sig,
 		"POLY_TIMESTAMP":  tsStr,
-		"POLY_API_KEY":      c.apiKeyCredentials.ApiKey,
+		"POLY_API_KEY":    c.apiKeyCredentials.ApiKey,
 		"POLY_PASSPHRASE": c.apiKeyCredentials.Passphrase,
 	}, nil
 }

@@ -26,12 +26,6 @@ type BookQuote struct {
 	Size  float64 `json:"size"`
 }
 
-// OrderRef is a minimal order handle from the CLOB.
-type OrderRef struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
-}
-
 // 订单类型常量
 const (
 	OrderTypeFOK = "FOK" // Fill-Or-Kill
@@ -207,22 +201,4 @@ type OrderResponse struct {
 	Status             string   `json:"status"`
 	TakingAmount       string   `json:"takingAmount"`
 	MakingAmount       string   `json:"makingAmount"`
-}
-
-type GetOrderResponse struct {
-	AssociateTrades []string `json:"associate_trades"`
-	ID              string   `json:"id"`
-	Status          string   `json:"status"`
-	Market          string   `json:"market"`
-	OriginalSize    string   `json:"original_size"`
-	Outcome         string   `json:"outcome"`
-	MakerAddress    string   `json:"maker_address"`
-	Owner           string   `json:"owner"`
-	Price           string   `json:"price"`
-	Side            string   `json:"side"`
-	SizeMatched     string   `json:"size_matched"`
-	AssetID         string   `json:"asset_id"`
-	Expiration      string   `json:"expiration"`
-	Type            string   `json:"type"`
-	CreatedAt       string   `json:"created_at"`
 }

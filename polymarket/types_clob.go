@@ -42,6 +42,25 @@ type BuilderFeeRate struct {
 	Taker float64 `json:"taker"`
 }
 
+// ReadonlyAPIKeyResponse is returned by CreateReadonlyAPIKey.
+type ReadonlyAPIKeyResponse struct {
+	APIKey string `json:"apiKey"`
+}
+
+// BuilderAPIKey is returned by CreateBuilderAPIKey.
+type BuilderAPIKey struct {
+	Key        string `json:"key"`
+	Secret     string `json:"secret"`
+	Passphrase string `json:"passphrase"`
+}
+
+// BuilderAPIKeyResponse is one row from GetBuilderAPIKeys.
+type BuilderAPIKeyResponse struct {
+	Key       string `json:"key"`
+	CreatedAt string `json:"createdAt,omitempty"`
+	RevokedAt string `json:"revokedAt,omitempty"`
+}
+
 // BuilderTradeParams filters builder-attributed trades.
 type BuilderTradeParams struct {
 	TradeParams
@@ -178,6 +197,33 @@ type Trade struct {
 	TraderSide      string `json:"trader_side"`
 }
 
+// BuilderTrade is one builder-attributed trade from GET /builder/trades.
+type BuilderTrade struct {
+	ID              string  `json:"id"`
+	TradeType       string  `json:"tradeType"`
+	TakerOrderHash  string  `json:"takerOrderHash"`
+	Builder         string  `json:"builder"`
+	Market          string  `json:"market"`
+	AssetID         string  `json:"assetId"`
+	Side            string  `json:"side"`
+	Size            string  `json:"size"`
+	SizeUSDC        string  `json:"sizeUsdc"`
+	Price           string  `json:"price"`
+	Status          string  `json:"status"`
+	Outcome         string  `json:"outcome"`
+	OutcomeIndex    int     `json:"outcomeIndex"`
+	Owner           string  `json:"owner"`
+	Maker           string  `json:"maker"`
+	TransactionHash string  `json:"transactionHash"`
+	MatchTime       string  `json:"matchTime"`
+	BucketIndex     int     `json:"bucketIndex"`
+	Fee             string  `json:"fee"`
+	FeeUSDC         string  `json:"feeUsdc"`
+	ErrorMessage    *string `json:"err_msg,omitempty"`
+	CreatedAt       *string `json:"createdAt"`
+	UpdatedAt       *string `json:"updatedAt"`
+}
+
 // TradesPage is one page from GET /data/trades.
 type TradesPage struct {
 	Trades     []Trade `json:"trades"`
@@ -193,6 +239,32 @@ func (p *TradesPage) UnmarshalJSON(b []byte) error {
 		NextCursor string  `json:"next_cursor"`
 		Limit      int     `json:"limit"`
 		Count      int     `json:"count"`
+	}
+	if err := json.Unmarshal(b, &wire); err != nil {
+		return err
+	}
+	p.Trades = wire.Trades
+	p.NextCursor = wire.NextCursor
+	p.Limit = wire.Limit
+	p.Count = wire.Count
+	return nil
+}
+
+// BuilderTradesPage is one page from GET /builder/trades.
+type BuilderTradesPage struct {
+	Trades     []BuilderTrade `json:"trades"`
+	NextCursor string         `json:"next_cursor"`
+	Limit      int            `json:"limit"`
+	Count      int            `json:"count"`
+}
+
+// UnmarshalJSON accepts the CLOB wire envelope whose trade rows are under "data".
+func (p *BuilderTradesPage) UnmarshalJSON(b []byte) error {
+	var wire struct {
+		Trades     []BuilderTrade `json:"data"`
+		NextCursor string         `json:"next_cursor"`
+		Limit      int            `json:"limit"`
+		Count      int            `json:"count"`
 	}
 	if err := json.Unmarshal(b, &wire); err != nil {
 		return err

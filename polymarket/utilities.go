@@ -119,7 +119,7 @@ func (c *Client) CalculateMarketPrice(tokenID string, side Side, amount float64,
 
 // CreateMarketOrder builds and signs a market order (price optional — filled from book when empty).
 func (c *Client) CreateMarketOrder(req MarketOrderRequest, orderType string) (*SignedOrderV2, error) {
-	tick, err := c.ResolveTickSize(req.TokenID, nil)
+	tick, err := c.resolveTickSize(req.TokenID, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -225,6 +225,9 @@ func (c *Client) GetLastTradesPrices(params []BookParams) (json.RawMessage, erro
 
 // GetPricesHistory returns historical prices for filters.
 func (c *Client) GetPricesHistory(params PriceHistoryFilterParams) ([]MarketPrice, error) {
+	if params.Interval == "" && (params.StartTs == 0 || params.EndTs == 0) {
+		return nil, fmt.Errorf("getPricesHistory requires either interval or both startTs and endTs")
+	}
 	q := url.Values{}
 	if params.Market != "" {
 		q.Set("market", params.Market)

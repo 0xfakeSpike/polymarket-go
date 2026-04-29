@@ -20,8 +20,6 @@ func (e *ApiError) Error() string {
 }
 
 var (
-	ErrL1AuthRequired     = errors.New("signer is required for this endpoint")
-	ErrL2AuthRequired     = errors.New("API credentials are required for this endpoint")
-	ErrBuilderAuthMissing = errors.New("builder signing is required for this endpoint")
-	ErrBuilderAuthFailed  = errors.New("builder key auth failed")
+	ErrL1AuthRequired = errors.New("signer is required for this endpoint")
+	ErrL2AuthRequired = errors.New("API credentials are required for this endpoint")
 )

@@ -81,7 +81,7 @@ func (c *Client) GetTrades(params *TradeParams, onlyFirstPage bool, nextCursor s
 	for nextCursor != EndCursor && (nextCursor == InitialCursor || !onlyFirstPage) {
 		path := PathDataTrades
 		bodyStr := ""
-		h, err := c.l2Headers("GET", path, bodyStr, false)
+		h, err := c.l2Headers("GET", path, bodyStr)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +112,7 @@ func (c *Client) GetTradesPaginated(params *TradeParams, nextCursor string) (*Tr
 		nextCursor = InitialCursor
 	}
 	path := PathDataTrades
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (c *Client) GetTradesPaginated(params *TradeParams, nextCursor string) (*Tr
 }
 
 // GetBuilderTrades returns builder-attributed trades.
-func (c *Client) GetBuilderTrades(params *BuilderTradeParams, nextCursor string) (*TradesPage, error) {
+func (c *Client) GetBuilderTrades(params *BuilderTradeParams, nextCursor string) (*BuilderTradesPage, error) {
 	if params == nil || params.BuilderCode == "" || params.BuilderCode == bytes32Zero {
 		return nil, fmt.Errorf("builderCode is required and cannot be zero")
 	}
@@ -142,7 +142,7 @@ func (c *Client) GetBuilderTrades(params *BuilderTradeParams, nextCursor string)
 	if err != nil {
 		return nil, err
 	}
-	var page TradesPage
+	var page BuilderTradesPage
 	if err := json.Unmarshal(data, &page); err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (c *Client) GetPreMigrationOrders(onlyFirstPage bool, nextCursor string) ([
 	var all []OpenOrder
 	path := PathPreMigrationOrders
 	for nextCursor != EndCursor && (nextCursor == InitialCursor || !onlyFirstPage) {
-		h, err := c.l2Headers("GET", path, "", false)
+		h, err := c.l2Headers("GET", path, "")
 		if err != nil {
 			return nil, err
 		}
@@ -194,12 +194,11 @@ func (c *Client) GetOpenOrders(params *OpenOrderParams, onlyFirstPage bool, next
 	var all []OpenOrder
 	path := PathDataOrders
 	for nextCursor != EndCursor && (nextCursor == InitialCursor || !onlyFirstPage) {
-		h, err := c.l2Headers("GET", path, "", true)
+		h, err := c.l2Headers("GET", path, "")
 		if err != nil {
 			return nil, err
 		}
 		q := openOrderParamsValues(params, nextCursor)
-		q.Set("signature_type", fmt.Sprintf("%d", c.signatureType))
 		data, err := c.clobRequest("GET", path, q, h, nil)
 		if err != nil {
 			return nil, err
@@ -229,7 +228,6 @@ func (c *Client) PostOrder(signed *SignedOrderV2, orderType string, postOnly, de
 type PostOrderBatchItem struct {
 	Order     *SignedOrderV2
 	OrderType string
-	PostOnly  *bool
 }
 
 // PostOrders posts multiple signed orders (POST /orders).
@@ -238,22 +236,22 @@ func (c *Client) PostOrders(orders []PostOrderBatchItem, postOnly, deferExec boo
 		return nil, err
 	}
 	outs := make([]*postOrderEnvelope, 0, len(orders))
+	if postOnly {
+		for _, o := range orders {
+			if o.OrderType == OrderTypeFOK || o.OrderType == OrderTypeFAK {
+				return nil, fmt.Errorf("postOnly is not supported for FOK/FAK orders")
+			}
+		}
+	}
 	for _, o := range orders {
-		po := postOnly
-		if o.PostOnly != nil {
-			po = *o.PostOnly
-		}
-		if po && (o.OrderType == OrderTypeFOK || o.OrderType == OrderTypeFAK) {
-			return nil, fmt.Errorf("postOnly is not supported for FOK/FAK orders")
-		}
-		outs = append(outs, newOrderWireFromSigned(o.Order, c.apiKeyCredentials.ApiKey, o.OrderType, deferExec, po))
+		outs = append(outs, newOrderWireFromSigned(o.Order, c.apiKeyCredentials.ApiKey, o.OrderType, deferExec, postOnly))
 	}
 	body, err := json.Marshal(outs)
 	if err != nil {
 		return nil, err
 	}
 	path := PathPostOrders
-	h, err := c.l2Headers("POST", path, string(body), true)
+	h, err := c.l2Headers("POST", path, string(body))
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +268,7 @@ func (c *Client) CancelOrder(payload OrderPayload) (json.RawMessage, error) {
 		return nil, err
 	}
 	path := PathCancelOrder
-	h, err := c.l2Headers("DELETE", path, string(b), false)
+	h, err := c.l2Headers("DELETE", path, string(b))
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +285,7 @@ func (c *Client) CancelOrders(orderHashes []string) (json.RawMessage, error) {
 		return nil, err
 	}
 	path := PathCancelOrders
-	h, err := c.l2Headers("DELETE", path, string(b), false)
+	h, err := c.l2Headers("DELETE", path, string(b))
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +298,7 @@ func (c *Client) CancelAll() (json.RawMessage, error) {
 		return nil, err
 	}
 	path := PathCancelAll
-	h, err := c.l2Headers("DELETE", path, "", false)
+	h, err := c.l2Headers("DELETE", path, "")
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +315,7 @@ func (c *Client) CancelMarketOrders(payload OrderMarketCancelParams) (json.RawMe
 		return nil, err
 	}
 	path := PathCancelMarket
-	h, err := c.l2Headers("DELETE", path, string(b), false)
+	h, err := c.l2Headers("DELETE", path, string(b))
 	if err != nil {
 		return nil, err
 	}
@@ -330,7 +328,7 @@ func (c *Client) IsOrderScoring(params *OrderScoringParams) (OrderScoring, error
 		return OrderScoring{}, err
 	}
 	path := PathOrderScoring
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return OrderScoring{}, err
 	}
@@ -363,7 +361,7 @@ func (c *Client) AreOrdersScoring(params *OrdersScoringParams) (OrdersScoring, e
 		return nil, err
 	}
 	path := PathOrdersScoring
-	h, err := c.l2Headers("POST", path, string(b), false)
+	h, err := c.l2Headers("POST", path, string(b))
 	if err != nil {
 		return nil, err
 	}

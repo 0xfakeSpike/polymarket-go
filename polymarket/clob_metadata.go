@@ -103,17 +103,6 @@ func (c *Client) GetTickSize(tokenID string) (string, error) {
 	return tick, nil
 }
 
-// ClearTickSizeCache drops tick size cache for one token or all when tokenID is empty.
-func (c *Client) ClearTickSizeCache(tokenID string) {
-	if tokenID != "" {
-		delete(c.tickSizes, tokenID)
-		delete(c.tickSizeAt, tokenID)
-		return
-	}
-	clear(c.tickSizes)
-	clear(c.tickSizeAt)
-}
-
 // parseNegRiskCLOBResponse reads GET /neg-risk JSON. Wrong neg_risk picks the wrong EIP-712
 // verifyingContract (CTF vs neg-risk exchange), which surfaces as "invalid signature" on POST /order.
 func parseNegRiskCLOBResponse(body []byte) (negRisk bool, apiErr string, err error) {
@@ -300,8 +289,7 @@ func (c *Client) rememberTickFromBook(assetID, tick string) {
 	c.tickSizeAt[assetID] = time.Now()
 }
 
-// ResolveTickSize returns user-provided tick if valid vs market minimum, else minimum tick.
-func (c *Client) ResolveTickSize(tokenID string, userTick *string) (string, error) {
+func (c *Client) resolveTickSize(tokenID string, userTick *string) (string, error) {
 	minTick, err := c.GetTickSize(tokenID)
 	if err != nil {
 		return "", err

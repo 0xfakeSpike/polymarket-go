@@ -18,16 +18,21 @@ type (
 	ClientOption      = sdk.ClientOption
 	APIKeyCredentials = sdk.APIKeyCredentials
 
-	Book               = sdk.Book
-	BookParams         = sdk.BookParams
-	FeeInfo            = sdk.FeeInfo
-	ClobToken          = sdk.ClobToken
-	MarketDetails      = sdk.MarketDetails
-	BuilderTradeParams = sdk.BuilderTradeParams
-	BuilderFeeRate     = sdk.BuilderFeeRate
-	OpenOrder          = sdk.OpenOrder
-	Trade              = sdk.Trade
-	TradesPage         = sdk.TradesPage
+	Book                   = sdk.Book
+	BookParams             = sdk.BookParams
+	FeeInfo                = sdk.FeeInfo
+	ClobToken              = sdk.ClobToken
+	MarketDetails          = sdk.MarketDetails
+	BuilderTradeParams     = sdk.BuilderTradeParams
+	BuilderTrade           = sdk.BuilderTrade
+	BuilderTradesPage      = sdk.BuilderTradesPage
+	BuilderFeeRate         = sdk.BuilderFeeRate
+	BuilderAPIKey          = sdk.BuilderAPIKey
+	BuilderAPIKeyResponse  = sdk.BuilderAPIKeyResponse
+	ReadonlyAPIKeyResponse = sdk.ReadonlyAPIKeyResponse
+	OpenOrder              = sdk.OpenOrder
+	Trade                  = sdk.Trade
+	TradesPage             = sdk.TradesPage
 
 	OrderRequest       = sdk.OrderRequest
 	MarketOrderRequest = sdk.MarketOrderRequest
@@ -67,7 +72,6 @@ func WithPolymarketSafeMaker(maker common.Address) ClientOption {
 func WithPolymarketProxyMaker(maker common.Address) ClientOption {
 	return sdk.WithPolymarketProxyMaker(maker)
 }
-func WithBuilderSigner(s sdk.BuilderSigner) ClientOption { return sdk.WithBuilderSigner(s) }
 func WithAPIKeyCredentials(cred *APIKeyCredentials) ClientOption {
 	return sdk.WithAPIKeyCredentials(cred)
 }

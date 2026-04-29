@@ -92,11 +92,6 @@ func WithPolymarketProxyMaker(maker common.Address) ClientOption {
 	}
 }
 
-// WithBuilderSigner enables builder header injection where the TS client uses builder flow.
-func WithBuilderSigner(s BuilderSigner) ClientOption {
-	return func(c *Client) { c.builderSigner = s }
-}
-
 // WithAPIKeyCredentials sets L2 credentials and skips automatic key bootstrap in [NewClient].
 func WithAPIKeyCredentials(cred *APIKeyCredentials) ClientOption {
 	return func(c *Client) {

@@ -145,7 +145,7 @@ func (c *Client) postSignedOrder(signed *SignedOrderV2, orderType string, deferE
 	}
 
 	path := PathPostOrder
-	headers, err := c.l2Headers("POST", path, string(jsonData), true)
+	headers, err := c.l2Headers("POST", path, string(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -166,13 +166,9 @@ func (c *Client) postSignedOrder(signed *SignedOrderV2, orderType string, deferE
 }
 
 // GetOrder retrieves a single open order by ID (order hash) from the CLOB API (GET /data/order/{id}).
-func (c *Client) GetOrder(orderID string, _ int64) (*OrderRef, error) {
-	if c.apiKeyCredentials == nil {
-		return nil, fmt.Errorf("API key not set, please call SetAPIKeyCredentials first")
-	}
-
+func (c *Client) GetOrder(orderID string) (*OpenOrder, error) {
 	path := PathDataOrderPrefix + orderID
-	headers, err := c.l2Headers("GET", path, "", true)
+	headers, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, fmt.Errorf("l2 headers: %w", err)
 	}
@@ -182,9 +178,9 @@ func (c *Client) GetOrder(orderID string, _ int64) (*OrderRef, error) {
 		return nil, fmt.Errorf("get order: %w", err)
 	}
 
-	var orderResp GetOrderResponse
-	if err := json.Unmarshal(body, &orderResp); err != nil {
+	var order OpenOrder
+	if err := json.Unmarshal(body, &order); err != nil {
 		return nil, fmt.Errorf("decode order response: %w", err)
 	}
-	return &OrderRef{ID: orderResp.ID, Status: orderResp.Status}, nil
+	return &order, nil
 }

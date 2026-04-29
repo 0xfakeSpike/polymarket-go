@@ -12,7 +12,7 @@ func (c *Client) GetEarningsForUserForDay(date string) (json.RawMessage, error) 
 		return nil, err
 	}
 	path := PathRewardsUser
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *Client) GetTotalEarningsForUserForDay(date string) (json.RawMessage, er
 		return nil, err
 	}
 	path := PathRewardsUserTotal
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *Client) GetUserEarningsAndMarketsConfig(date, orderBy, position string,
 		return nil, err
 	}
 	path := PathRewardsUserMarkets
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *Client) GetRewardPercentages() (json.RawMessage, error) {
 		return nil, err
 	}
 	path := PathRewardsPercentages
-	h, err := c.l2Headers("GET", path, "", false)
+	h, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}

@@ -45,7 +45,6 @@ type Client struct {
 	signatureType    model.SignatureType
 	// funderAddress is the order maker when using proxy/safe flows; zero means maker == signer (EOA).
 	funderAddress common.Address
-	builderSigner BuilderSigner
 
 	tickSizes   map[string]string
 	tickSizeAt  map[string]time.Time
@@ -211,48 +210,9 @@ func (c *Client) requireL2() error {
 	return nil
 }
 
-func (c *Client) requireBuilder() error {
-	if c.builderSigner == nil {
-		return ErrBuilderAuthMissing
-	}
-	return nil
-}
-
-// l2Headers merges optional builder headers when useBuilder is true (matches clob-client builder flow).
-func (c *Client) builderHeadersOnly(method, path, body string) (map[string]string, error) {
-	if c.builderSigner == nil {
-		return nil, ErrBuilderAuthMissing
-	}
-	h, err := c.builderSigner.SignBuilder(method, path, body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBuilderAuthFailed, err)
-	}
-	if len(h) == 0 {
-		return nil, ErrBuilderAuthFailed
-	}
-	return h, nil
-}
-
-func (c *Client) l2Headers(method, path, body string, useBuilder bool) (map[string]string, error) {
+func (c *Client) l2Headers(method, path, body string) (map[string]string, error) {
 	if err := c.requireL2(); err != nil {
 		return nil, err
 	}
-	h, err := c.buildL2AuthHeaders(method, path, body)
-	if err != nil {
-		return nil, err
-	}
-	if !useBuilder || c.builderSigner == nil {
-		return h, nil
-	}
-	bh, err := c.builderSigner.SignBuilder(method, path, body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBuilderAuthFailed, err)
-	}
-	if len(bh) == 0 {
-		return h, nil
-	}
-	for k, v := range bh {
-		h[k] = v
-	}
-	return h, nil
+	return c.buildL2AuthHeaders(method, path, body)
 }

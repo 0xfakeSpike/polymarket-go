@@ -7,6 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.11]
+
+### Changed
+- Refine CLOB auth and API key flows: simplify L2 header usage, normalize API key CRUD responses, and align builder/readonly key endpoints with typed results.
+- Remove builder-signer option and legacy builder-only header path; keep order and account flows on standard L2 credentials.
+- Update typed CLOB models and bridge exports (builder trades, API key payloads, open order payload shape) to match current endpoint responses.
+- Refresh docs, CLI tool mappings, and tests to the latest CLOB-only surface.
+
 ## [v1.0.10]
 
 ### Changed

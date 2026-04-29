@@ -3,17 +3,13 @@ package polymarket
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
 // GetAPIKeys lists API keys for the authenticated user (L2).
-func (c *Client) GetAPIKeys() ([]APIKeyCredentials, error) {
-	if c.apiKeyCredentials == nil {
-		return nil, fmt.Errorf("no API key credentials set")
-	}
+func (c *Client) GetAPIKeys() (*APIKeysResponse, error) {
 	path := PathGetAPIKeys
-	headers, err := c.buildL2AuthHeaders("GET", path, "")
+	headers, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +21,7 @@ func (c *Client) GetAPIKeys() ([]APIKeyCredentials, error) {
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("unmarshal API keys: %w", err)
 	}
-	return resp.APIKeys, nil
+	return &resp, nil
 }
 
 // CreateAPIKey creates a new API key (L1).
@@ -101,41 +97,23 @@ func shouldDeriveAfterCreateAPIKeyFailure(err error) bool {
 	return strings.Contains(s, "could not create api key")
 }
 
-// DeleteAPIKey deletes an API key using explicit credentials (L2).
-func (c *Client) DeleteAPIKey(apiKey, passphrase, secret string) error {
-	if apiKey == "" || passphrase == "" || secret == "" {
-		return fmt.Errorf("API key, passphrase, and secret are required")
-	}
+// DeleteAPIKey deletes the current L2 API key.
+func (c *Client) DeleteAPIKey() (json.RawMessage, error) {
 	path := PathDeleteAPIKey
-	ts, err := c.authTimestampSeconds()
+	headers, err := c.l2Headers("DELETE", path, "")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	tsStr := strconv.FormatInt(ts, 10)
-	sig, err := signL2("DELETE", path, "", tsStr, secret)
+	body, err := c.clobRequest("DELETE", path, nil, headers, nil)
 	if err != nil {
-		return fmt.Errorf("l2 signature: %w", err)
+		return nil, fmt.Errorf("delete API key: %w", err)
 	}
-	headers := map[string]string{
-		"POLY_ADDRESS":    c.fromAddress.Hex(),
-		"POLY_SIGNATURE":  sig,
-		"POLY_TIMESTAMP":  tsStr,
-		"POLY_API_KEY":    apiKey,
-		"POLY_PASSPHRASE": passphrase,
-	}
-	_, err = c.clobRequest("DELETE", path, nil, headers, nil)
-	if err != nil {
-		return fmt.Errorf("delete API key: %w", err)
-	}
-	return nil
+	return body, nil
 }
 
 func (c *Client) GetClosedOnlyMode() (*ClosedOnlyModeStatus, error) {
-	if c.apiKeyCredentials == nil {
-		return nil, fmt.Errorf("no API key credentials set")
-	}
 	path := PathClosedOnly
-	headers, err := c.buildL2AuthHeaders("GET", path, "")
+	headers, err := c.l2Headers("GET", path, "")
 	if err != nil {
 		return nil, err
 	}
