@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.12]
+
+### Changed
+- Upgrade `polymarket-mcp` from a custom line-based bridge to a native MCP stdio server with JSON-RPC and `Content-Length` framing.
+- Add MCP methods `initialize`, `tools/list`, `tools/call`, and `ping` for direct Codex integration without an adapter layer.
+- Update README and MCP integration docs to document direct MCP client configuration.
+
 ## [v1.0.11]
 
 ### Changed

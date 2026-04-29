@@ -7,8 +7,7 @@ import (
 	"github.com/0xfakeSpike/polymarket-go/internal/mcp/stdio"
 )
 
-// This command provides a tiny stdio bridge intended for MCP server adapters.
-// Input: one JSON request per line. Output: one JSON response per line.
+// This command serves a standards-compatible MCP server over stdio.
 func main() {
 	srv, err := stdio.New(os.Stdin, os.Stdout)
 	if err != nil {

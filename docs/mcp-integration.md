@@ -1,37 +1,13 @@
 # MCP bridge (`polymarket-mcp`)
 
-`polymarket-mcp` reads **one JSON request per line** from stdin and writes **one JSON response per line** to stdout. Host it behind any MCP server that can spawn a process and map tool calls to this protocol.
+`polymarket-mcp` is a **standards-compatible MCP server** over stdio. It speaks MCP JSON-RPC with `Content-Length` framing and can be connected directly by MCP clients (including Codex).
 
-## Request and response
+## Transport and protocol
 
-**Request** (single line):
-
-```json
-{
-  "tool": "<tool_name>",
-  "params": { }
-}
-```
-
-`params` is always a JSON **object** (use `{}` when empty).
-
-**Response** (single line):
-
-```json
-{
-  "ok": true,
-  "data": { }
-}
-```
-
-or on failure:
-
-```json
-{
-  "ok": false,
-  "error": "message"
-}
-```
+- Transport: stdio
+- Framing: `Content-Length: <n>\r\n\r\n<json>`
+- Protocol: MCP JSON-RPC (`initialize`, `tools/list`, `tools/call`, `ping`)
+- Current server protocol version: `2024-11-05`
 
 ## Environment
 
@@ -41,7 +17,7 @@ or on failure:
 
 ## Tools
 
-All tools share the same definitions as `pmctl tool` (see `internal/tools`).
+All tools share the same definitions as `pmctl tool` (see `internal/tools`). Tool input is passed via MCP `tools/call.arguments`.
 
 ### `get_orderbook`
 
@@ -49,8 +25,10 @@ All tools share the same definitions as `pmctl tool` (see `internal/tools`).
 |-------|------|----------|-------------|
 | `token_id` | string | yes | CLOB token id. |
 
+MCP call arguments:
+
 ```json
-{"tool":"get_orderbook","params":{"token_id":"<CLOB_TOKEN_ID>"}}
+{"token_id":"<CLOB_TOKEN_ID>"}
 ```
 
 ### `methods`
@@ -59,8 +37,10 @@ All tools share the same definitions as `pmctl tool` (see `internal/tools`).
 |-------|------|----------|-------------|
 | `long` | bool | no | If `true`, include per-method reflect signatures. |
 
+MCP call arguments:
+
 ```json
-{"tool":"methods","params":{"long":true}}
+{"long":true}
 ```
 
 ### `client_call`
@@ -72,11 +52,23 @@ Invoke any **exported** `polymarket.Client` method by name. Arguments are a JSON
 | `method` | string | yes | Exported method name, e.g. `GetOrderBook`. |
 | `args` | array | no | Defaults to `[]`. |
 
+MCP call arguments:
+
 ```json
-{"tool":"client_call","params":{"method":"GetOrderBook","args":["<CLOB_TOKEN_ID>"]}}
+{"method":"GetOrderBook","args":["<CLOB_TOKEN_ID>"]}
 ```
 
 Methods whose parameters include **functions** or **non-empty interfaces** (e.g. WebSocket handlers) cannot be called this way.
+
+## Codex connection
+
+Point your MCP client to launch `polymarket-mcp` directly via stdio (no adapter needed).
+
+Example command:
+
+```bash
+polymarket-mcp
+```
 
 ## Security
 

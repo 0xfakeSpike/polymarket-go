@@ -1,12 +1,12 @@
 # polymarket-go
 
-Go client for the [Polymarket](https://polymarket.com) **CLOB** API, plus **`pmctl`** (CLI) and **`polymarket-mcp`** (JSON-line stdio bridge for MCP hosts).
+Go client for the [Polymarket](https://polymarket.com) **CLOB** API, plus **`pmctl`** (CLI) and **`polymarket-mcp`** (standards-compatible MCP stdio server).
 
 ## Features
 
 - **SDK** — import `github.com/0xfakeSpike/polymarket-go`; `Client` mirrors the public CLOB client surface in Go style.
 - **CLI (`pmctl`)** — named CLOB tools with JSON params, optional reflection **`call`** for exported `Client` methods, and **`methods`** to list signatures.
-- **MCP bridge** — same tool registry as the CLI over stdin/stdout; optional authenticated client via env.
+- **MCP server** — same tool registry as the CLI, exposed as native MCP over stdio; optional authenticated client via env.
 - **Examples** — under `examples/`.
 
 ## Requirements
@@ -87,7 +87,7 @@ pmctl call -args '["<CONDITION_ID>"]' GetClobMarketInfo
 
 ## MCP (`polymarket-mcp`)
 
-One JSON object per input line; one JSON response per line. Specification and tool schemas: **[docs/mcp-integration.md](docs/mcp-integration.md)**.
+Native MCP stdio server (JSON-RPC + `Content-Length` framing). Specification and tool schemas: **[docs/mcp-integration.md](docs/mcp-integration.md)**.
 
 **Environment**
 
@@ -107,7 +107,7 @@ go run ./examples/orderbook "<CLOB_TOKEN_ID>"
 cmd/pmctl              CLI entrypoint
 cmd/polymarket-mcp     MCP stdio entrypoint
 internal/cli/pmctl   CLI wiring (flags, stdout/stderr)
-internal/mcp/stdio   MCP JSON-line server
+internal/mcp/stdio   MCP stdio server (native MCP protocol)
 internal/tools       Shared tool registry (get_orderbook, methods, client_call)
 internal/tools/invoke Reflection helpers for client_call
 polymarket/            CLOB client implementation
