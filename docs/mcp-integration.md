@@ -66,7 +66,7 @@ MCP call arguments:
 Get annualized market ranking through the same endpoint:
 
 ```json
-{"method":"GetMarketsByAnnualizedReturn","args":[{"limit":10,"max_pages":3,"min_best_ask":0.5}]}
+{"method":"GetMarketsByAnnualizedReturn","args":[{"limit":10,"max_pages":3,"events_page_limit":100,"tag_slug":"crypto","min_best_ask":0.5}]}
 ```
 
 Methods whose parameters include **functions** or **non-empty interfaces** (e.g. WebSocket handlers) cannot be called this way.

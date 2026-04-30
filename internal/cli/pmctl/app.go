@@ -107,11 +107,11 @@ Usage:
 
 Examples:
   pmctl tool -params '{"long":true}' methods
-  pmctl tool -params '{"limit":5,"max_pages":1}' get_markets_by_annualized_return
+  pmctl tool -params '{"limit":5,"max_pages":1,"tag_slug":"crypto"}' get_markets_by_annualized_return
   pmctl call GetOK
   pmctl call -args '["<token_id>"]' GetOrderBook
   pmctl call -args '["<condition_id>"]' GetClobMarketInfo
-  pmctl call -args '[{"limit":10,"max_pages":3,"min_best_ask":0.5}]' GetMarketsByAnnualizedReturn
+  pmctl call -args '[{"limit":10,"max_pages":3,"events_page_limit":100,"tag_slug":"crypto","min_best_ask":0.5}]' GetMarketsByAnnualizedReturn
   pmctl call -public=false -private-key "$PMCTL_PRIVATE_KEY" -args '[...]' CreateOrder
 `)
 }

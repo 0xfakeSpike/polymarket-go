@@ -221,10 +221,12 @@ func toolSchema(name string) map[string]any {
 	case "get_markets_by_annualized_return":
 		return objectSchema(
 			map[string]any{
-				"limit":          map[string]any{"type": "integer", "minimum": 1},
-				"max_pages":      map[string]any{"type": "integer", "minimum": 1},
-				"min_best_ask":   map[string]any{"type": "number", "minimum": 0, "maximum": 1},
-				"now_rfc3339":    map[string]any{"type": "string", "description": "Optional anchor time (RFC3339 or RFC3339Nano) for reproducible scans."},
+				"limit":               map[string]any{"type": "integer", "minimum": 1},
+				"max_pages":           map[string]any{"type": "integer", "minimum": 1},
+				"events_page_limit":   map[string]any{"type": "integer", "minimum": 1, "maximum": 500, "description": "Gamma /events/keyset page size per request (default 100)."},
+				"tag_slug":            map[string]any{"type": "string", "description": "Optional Gamma tag_slug filter on /events/keyset."},
+				"min_best_ask":        map[string]any{"type": "number", "minimum": 0, "maximum": 1},
+				"now_rfc3339":         map[string]any{"type": "string", "description": "Optional anchor time (RFC3339 or RFC3339Nano) for reproducible scans."},
 			},
 			nil,
 		)

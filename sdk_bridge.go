@@ -33,6 +33,10 @@ type (
 	AnnualizedReturnMarketsParams = sdk.AnnualizedReturnMarketsParams
 	MarketAnnualizedReturn        = sdk.MarketAnnualizedReturn
 
+	EventsKeysetParams   = sdk.EventsKeysetParams
+	KeysetEventsResponse = sdk.KeysetEventsResponse
+	GammaEvent           = sdk.GammaEvent
+
 	PublicProfileResponse  = sdk.PublicProfileResponse
 	PublicProfileUser      = sdk.PublicProfileUser
 	CurrentPositionsParams = sdk.CurrentPositionsParams

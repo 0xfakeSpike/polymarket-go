@@ -13,8 +13,12 @@ import (
 type AnnualizedReturnMarketsParams struct {
 	// Limit caps final rows returned. Default 20.
 	Limit int
-	// MaxPages caps /markets pages scanned. Default 3.
+	// MaxPages caps Gamma /events/keyset pages scanned. Default 3.
 	MaxPages int
+	// EventsPageLimit is the page size for each Gamma keyset request (1–500). Default 100.
+	EventsPageLimit int
+	// TagSlug filters events/markets via Gamma tag_slug (optional).
+	TagSlug string
 	// MinBestAsk keeps only outcomes whose best ask is >= this threshold. Default 0.5.
 	MinBestAsk float64
 	// Now overrides current time for deterministic callers/tests.
@@ -48,12 +52,14 @@ type marketScanRow struct {
 	Tokens      []marketTokenRef
 }
 
-// GetMarketsByAnnualizedReturn scans CLOB markets and returns rows sorted by annualized return descending.
+// GetMarketsByAnnualizedReturn scans markets from the Gamma /events/keyset feed and returns rows
+// sorted by annualized return descending.
 //
 // Strategy:
-//  1. Page /markets.
-//  2. For each market, fetch token order books and pick the outcome with highest best ask >= min threshold.
-//  3. Compute ROI=(1-ask)/ask and annualized return=(1+ROI)^(1/years)-1 until settlement.
+//  1. Page Gamma GET /events/keyset (optional tag_slug via [AnnualizedReturnMarketsParams.TagSlug]).
+//  2. Flatten each event's markets; decode condition id, settlement time, and CLOB token ids.
+//  3. For each market, fetch token order books and pick the outcome with highest best ask >= min threshold.
+//  4. Compute ROI=(1-ask)/ask and annualized return=(1+ROI)^(1/years)-1 until settlement.
 func (c *Client) GetMarketsByAnnualizedReturn(params *AnnualizedReturnMarketsParams) ([]MarketAnnualizedReturn, error) {
 	if c == nil {
 		return nil, fmt.Errorf("nil client")
@@ -61,37 +67,42 @@ func (c *Client) GetMarketsByAnnualizedReturn(params *AnnualizedReturnMarketsPar
 	cfg := normalizeAnnualizedParams(params)
 	now := cfg.Now
 
-	next := InitialCursor
 	rows := make([]MarketAnnualizedReturn, 0, cfg.Limit)
 	seen := make(map[string]struct{})
-	for page := 0; page < cfg.MaxPages && next != EndCursor; page++ {
-		payload, err := c.GetMarkets(next)
+	closed := false
+	after := ""
+	for page := 0; page < cfg.MaxPages; page++ {
+		evp, err := c.GetEventsKeyset(&EventsKeysetParams{
+			Limit:       cfg.EventsPageLimit,
+			AfterCursor: after,
+			TagSlug:     cfg.TagSlug,
+			Closed:      &closed,
+		})
 		if err != nil {
 			return nil, err
 		}
-		markets, err := decodeMarketScanRows(payload.Data)
-		if err != nil {
-			return nil, err
-		}
-		for _, m := range markets {
-			if !m.EndDate.After(now) || len(m.Tokens) == 0 {
-				continue
-			}
-			if _, ok := seen[m.ConditionID]; ok {
-				continue
-			}
-			seen[m.ConditionID] = struct{}{}
+		for _, ev := range evp.Events {
+			for _, raw := range ev.Markets {
+				m, ok := decodeGammaMarketToScanRow(raw)
+				if !ok || !m.EndDate.After(now) || len(m.Tokens) == 0 {
+					continue
+				}
+				if _, ok := seen[m.ConditionID]; ok {
+					continue
+				}
+				seen[m.ConditionID] = struct{}{}
 
-			best, ok := c.bestOutcomeByAsk(m, cfg.MinBestAsk, now)
-			if !ok {
-				continue
+				best, ok := c.bestOutcomeByAsk(m, cfg.MinBestAsk, now)
+				if !ok {
+					continue
+				}
+				rows = append(rows, best)
 			}
-			rows = append(rows, best)
 		}
-		next = payload.NextCursor
-		if next == "" {
+		if evp.NextCursor == "" {
 			break
 		}
+		after = evp.NextCursor
 	}
 
 	sort.Slice(rows, func(i, j int) bool {
@@ -105,10 +116,11 @@ func (c *Client) GetMarketsByAnnualizedReturn(params *AnnualizedReturnMarketsPar
 
 func normalizeAnnualizedParams(p *AnnualizedReturnMarketsParams) AnnualizedReturnMarketsParams {
 	out := AnnualizedReturnMarketsParams{
-		Limit:      20,
-		MaxPages:   3,
-		MinBestAsk: 0.5,
-		Now:        time.Now(),
+		Limit:           20,
+		MaxPages:        3,
+		EventsPageLimit: 100,
+		MinBestAsk:      0.5,
+		Now:             time.Now(),
 	}
 	if p == nil {
 		return out
@@ -118,6 +130,15 @@ func normalizeAnnualizedParams(p *AnnualizedReturnMarketsParams) AnnualizedRetur
 	}
 	if p.MaxPages > 0 {
 		out.MaxPages = p.MaxPages
+	}
+	if p.EventsPageLimit > 0 {
+		out.EventsPageLimit = p.EventsPageLimit
+		if out.EventsPageLimit > 500 {
+			out.EventsPageLimit = 500
+		}
+	}
+	if strings.TrimSpace(p.TagSlug) != "" {
+		out.TagSlug = strings.TrimSpace(p.TagSlug)
 	}
 	if p.MinBestAsk > 0 {
 		out.MinBestAsk = p.MinBestAsk
@@ -196,6 +217,107 @@ func annualizedReturnFromROI(roi float64, holding time.Duration) (float64, bool)
 		return 0, false
 	}
 	return math.Pow(1+roi, 1/years) - 1, true
+}
+
+func decodeGammaMarketToScanRow(item map[string]any) (marketScanRow, bool) {
+	if item == nil {
+		return marketScanRow{}, false
+	}
+	conditionID := firstString(item, "conditionId", "condition_id", "id")
+	if conditionID == "" {
+		return marketScanRow{}, false
+	}
+	endISO := firstString(item, "endDateIso", "end_date_iso", "endDate", "end_date", "umaEndDateIso", "uma_end_date_iso")
+	endDate, ok := parseMarketEndTime(endISO)
+	if !ok {
+		return marketScanRow{}, false
+	}
+	tokens := decodeGammaMarketTokens(item)
+	if len(tokens) == 0 {
+		return marketScanRow{}, false
+	}
+	return marketScanRow{
+		ConditionID: conditionID,
+		Question:    firstString(item, "question", "title", "groupItemTitle", "group_item_title"),
+		EndDate:     endDate,
+		Tokens:      tokens,
+	}, true
+}
+
+func decodeGammaMarketTokens(item map[string]any) []marketTokenRef {
+	ids := firstFlexibleStringSlice(item, "clobTokenIds", "clob_token_ids", "assets_ids", "asset_ids")
+	outcomes := firstFlexibleStringSlice(item, "outcomes", "shortOutcomes", "short_outcomes")
+	if len(ids) == 0 {
+		return nil
+	}
+	out := make([]marketTokenRef, 0, len(ids))
+	for i, id := range ids {
+		id = strings.TrimSpace(id)
+		if id == "" {
+			continue
+		}
+		t := marketTokenRef{TokenID: id}
+		if i < len(outcomes) {
+			t.Outcome = outcomes[i]
+		}
+		out = append(out, t)
+	}
+	return out
+}
+
+func firstFlexibleStringSlice(m map[string]any, keys ...string) []string {
+	for _, k := range keys {
+		if v, ok := m[k]; ok {
+			if sl := flexibleStringSlice(v); len(sl) > 0 {
+				return sl
+			}
+		}
+	}
+	return nil
+}
+
+// flexibleStringSlice turns a Gamma JSON field into a []string: JSON arrays, Go []any, or JSON-in-string.
+func flexibleStringSlice(v any) []string {
+	if v == nil {
+		return nil
+	}
+	switch x := v.(type) {
+	case string:
+		s := strings.TrimSpace(x)
+		if s == "" || s == "null" {
+			return nil
+		}
+		if strings.HasPrefix(s, "[") {
+			var arr []string
+			if err := json.Unmarshal([]byte(s), &arr); err == nil && len(arr) > 0 {
+				return arr
+			}
+			var raw []json.RawMessage
+			if err := json.Unmarshal([]byte(s), &raw); err == nil && len(raw) > 0 {
+				out := make([]string, 0, len(raw))
+				for _, r := range raw {
+					var s2 string
+					if json.Unmarshal(r, &s2) == nil && strings.TrimSpace(s2) != "" {
+						out = append(out, strings.TrimSpace(s2))
+						continue
+					}
+					var n json.Number
+					if json.Unmarshal(r, &n) == nil {
+						out = append(out, n.String())
+					}
+				}
+				if len(out) > 0 {
+					return out
+				}
+			}
+			return nil
+		}
+		return []string{s}
+	case []any:
+		return toStringSlice(x)
+	default:
+		return nil
+	}
 }
 
 func decodeMarketScanRows(raw json.RawMessage) ([]marketScanRow, error) {
@@ -321,4 +443,3 @@ func parseMarketEndTime(v string) (time.Time, bool) {
 	}
 	return time.Time{}, false
 }
-

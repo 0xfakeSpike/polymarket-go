@@ -7,6 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- `GetMarketsByAnnualizedReturn` now walks Gamma **`GET /events/keyset`** (with optional **`tag_slug`**) instead of CLOB `/markets`; added **`EventsPageLimit`** on [AnnualizedReturnMarketsParams].
+- New **`GetEventsKeyset`** and **`EventsKeysetParams`** for direct keyset access ([list events keyset](https://docs.polymarket.com/api-reference/events/list-events-keyset-pagination)).
+
 ## [v1.0.16]
 
 ### Added

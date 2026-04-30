@@ -37,10 +37,12 @@ type methodsParams struct {
 
 // getMarketsByAnnualizedReturnToolParams are JSON object params for the named MCP/CLI tool.
 type getMarketsByAnnualizedReturnToolParams struct {
-	Limit        int     `json:"limit"`
-	MaxPages     int     `json:"max_pages"`
-	MinBestAsk   float64 `json:"min_best_ask"`
-	NowRFC3339   string  `json:"now_rfc3339,omitempty"`
+	Limit             int     `json:"limit"`
+	MaxPages          int     `json:"max_pages"`
+	EventsPageLimit   int     `json:"events_page_limit,omitempty"`
+	TagSlug           string  `json:"tag_slug,omitempty"`
+	MinBestAsk        float64 `json:"min_best_ask"`
+	NowRFC3339        string  `json:"now_rfc3339,omitempty"`
 }
 
 var registry = map[string]Tool{
@@ -64,7 +66,7 @@ var registry = map[string]Tool{
 	},
 	"get_markets_by_annualized_return": {
 		Name:        "get_markets_by_annualized_return",
-		Description: "Rank CLOB markets by annualized return from now until settlement (read-only; uses /markets + order books).",
+		Description: "Rank markets by annualized return (read-only; Gamma /events/keyset + CLOB order books).",
 		ReadOnly:    true,
 		Run: func(c *polymarket.Client, raw json.RawMessage) (any, error) {
 			var p getMarketsByAnnualizedReturnToolParams
@@ -72,9 +74,11 @@ var registry = map[string]Tool{
 				return nil, err
 			}
 			ap := &polymarket.AnnualizedReturnMarketsParams{
-				Limit:      p.Limit,
-				MaxPages:   p.MaxPages,
-				MinBestAsk: p.MinBestAsk,
+				Limit:           p.Limit,
+				MaxPages:        p.MaxPages,
+				EventsPageLimit: p.EventsPageLimit,
+				TagSlug:         p.TagSlug,
+				MinBestAsk:      p.MinBestAsk,
 			}
 			if s := p.NowRFC3339; s != "" {
 				t, err := time.Parse(time.RFC3339Nano, s)
