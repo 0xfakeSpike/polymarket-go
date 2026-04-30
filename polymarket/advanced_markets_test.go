@@ -49,3 +49,20 @@ func TestDecodeGammaMarketToScanRow_nativeArrays(t *testing.T) {
 		t.Fatalf("tokens: %+v", row.Tokens)
 	}
 }
+
+func TestDecodeGammaMarketToScanRow_dateOnlyEndDateIso(t *testing.T) {
+	m := map[string]any{
+		"conditionId":  "0xdate",
+		"question":     "Date only",
+		"endDateIso":   "2025-12-31",
+		"clobTokenIds": "[\"x\",\"y\"]",
+		"outcomes":     "[\"Yes\",\"No\"]",
+	}
+	row, ok := decodeGammaMarketToScanRow(m)
+	if !ok {
+		t.Fatal("expected ok for date-only endDateIso")
+	}
+	if got := row.EndDate.UTC().Format("2006-01-02"); got != "2025-12-31" {
+		t.Fatalf("unexpected parsed date: %s", got)
+	}
+}
