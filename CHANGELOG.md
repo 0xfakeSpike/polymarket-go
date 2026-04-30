@@ -7,8 +7,10 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.18]
+
 ### Changed
-- Homebrew tap formula for **`pmctl`** renamed from **`polymarket-go`** to **`polymarket-cli`** (same tap `brew tap 0xfakeSpike/tap`). GitHub repo and Go module path stay **`polymarket-go`**. Upgrade: `brew uninstall polymarket-go` then `brew install polymarket-cli`. After the next tag, remove obsolete `polymarket-go.rb` from **`homebrew-tap`** if GoReleaser does not overwrite it.
+- Homebrew tap formula for **`pmctl`** renamed from **`polymarket-go`** to **`polymarket-cli`** (same tap `brew tap 0xfakeSpike/tap`). GitHub repo and Go module path stay **`polymarket-go`**. Upgrade: `brew uninstall polymarket-go` then `brew install polymarket-cli`. After release, remove obsolete **`polymarket-go.rb`** from **`homebrew-tap`** if it remains alongside **`polymarket-cli.rb`**.
 
 ## [v1.0.17]
 
