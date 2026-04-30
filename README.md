@@ -49,7 +49,7 @@ Prefer the **root import** above. The implementation also lives under `github.co
 
 ```bash
 brew tap 0xfakeSpike/tap
-brew install polymarket-go polymarket-mcp
+brew install polymarket-cli polymarket-mcp
 ```
 
 Tap setup and release automation: **[docs/homebrew-release.md](docs/homebrew-release.md)**.

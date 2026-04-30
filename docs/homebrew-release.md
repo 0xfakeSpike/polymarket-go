@@ -3,7 +3,7 @@
 Releases are built with **GoReleaser** on **GitHub Actions** when you push a tag matching `v*`. Each release publishes:
 
 - GitHub Release assets (`pmctl`, `polymarket-mcp`, archives, `checksums.txt`)
-- Formula updates in the tap repository **`0xfakeSpike/homebrew-tap`** (`polymarket-go`, `polymarket-mcp`)
+- Formula updates in the tap repository **`0xfakeSpike/homebrew-tap`** (`polymarket-cli`, `polymarket-mcp`)
 
 ## Prerequisites
 
@@ -48,8 +48,19 @@ Wait for the **release** workflow on `polymarket-go`, then verify formulas on `h
 
 ```bash
 brew tap 0xfakeSpike/tap
-brew install polymarket-go polymarket-mcp
+brew install polymarket-cli polymarket-mcp
 ```
+
+### Renamed from `polymarket-go` (tap formula)
+
+The Homebrew formula that installs **`pmctl`** is now **`polymarket-cli`** (the GitHub repo and Go module remain `polymarket-go`). If you still have the old formula:
+
+```bash
+brew uninstall polymarket-go
+brew install polymarket-cli
+```
+
+After the next release, remove or replace the obsolete `polymarket-go.rb` in **`homebrew-tap`** so users are not offered two formulas for the same binary.
 
 ## Local GoReleaser check
 

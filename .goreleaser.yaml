@@ -69,7 +69,7 @@ release:
   replace_existing_artifacts: true
 
 brews:
-  - name: polymarket-go
+  - name: polymarket-cli
     # Set repository variable SKIP_HOMEBREW_TAP=true to publish GitHub release only (no tap commit).
     skip_upload: '{{ eq .Env.SKIP_HOMEBREW_TAP "true" }}'
     ids:
@@ -80,7 +80,7 @@ brews:
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: https://github.com/0xfakeSpike/polymarket-go
-    description: Polymarket Go companion CLI
+    description: Polymarket companion CLI (pmctl)
     license: MIT
     install: |
       bin.install "pmctl"
