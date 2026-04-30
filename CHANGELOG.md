@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.19]
+
 ### Fixed
 - `GetMarketsByAnnualizedReturn` now accepts date-only settlement values from Gamma (e.g. `endDateIso: "2025-12-31"`), preventing valid markets from being dropped during scan.
 - Added regression test coverage for date-only `endDateIso` parsing in annualized market decoding.
