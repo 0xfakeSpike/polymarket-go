@@ -18,23 +18,33 @@ type (
 	ClientOption      = sdk.ClientOption
 	APIKeyCredentials = sdk.APIKeyCredentials
 
-	Book                   = sdk.Book
-	BookParams             = sdk.BookParams
-	FeeInfo                = sdk.FeeInfo
-	ClobToken              = sdk.ClobToken
-	MarketDetails          = sdk.MarketDetails
-	BuilderTradeParams     = sdk.BuilderTradeParams
-	BuilderTrade           = sdk.BuilderTrade
-	BuilderTradesPage      = sdk.BuilderTradesPage
-	BuilderFeeRate         = sdk.BuilderFeeRate
-	BuilderAPIKey          = sdk.BuilderAPIKey
-	BuilderAPIKeyResponse  = sdk.BuilderAPIKeyResponse
-	ReadonlyAPIKeyResponse = sdk.ReadonlyAPIKeyResponse
+	Book                          = sdk.Book
+	BookParams                    = sdk.BookParams
+	FeeInfo                       = sdk.FeeInfo
+	ClobToken                     = sdk.ClobToken
+	MarketDetails                 = sdk.MarketDetails
+	BuilderTradeParams            = sdk.BuilderTradeParams
+	BuilderTrade                  = sdk.BuilderTrade
+	BuilderTradesPage             = sdk.BuilderTradesPage
+	BuilderFeeRate                = sdk.BuilderFeeRate
+	BuilderAPIKey                 = sdk.BuilderAPIKey
+	BuilderAPIKeyResponse         = sdk.BuilderAPIKeyResponse
+	ReadonlyAPIKeyResponse        = sdk.ReadonlyAPIKeyResponse
 	AnnualizedReturnMarketsParams = sdk.AnnualizedReturnMarketsParams
 	MarketAnnualizedReturn        = sdk.MarketAnnualizedReturn
-	OpenOrder              = sdk.OpenOrder
-	Trade                  = sdk.Trade
-	TradesPage             = sdk.TradesPage
+
+	PublicProfileResponse  = sdk.PublicProfileResponse
+	PublicProfileUser      = sdk.PublicProfileUser
+	CurrentPositionsParams = sdk.CurrentPositionsParams
+	Position               = sdk.Position
+	ClosedPositionsParams  = sdk.ClosedPositionsParams
+	ClosedPosition         = sdk.ClosedPosition
+	UserActivityParams     = sdk.UserActivityParams
+	Activity               = sdk.Activity
+
+	OpenOrder  = sdk.OpenOrder
+	Trade      = sdk.Trade
+	TradesPage = sdk.TradesPage
 
 	OrderRequest       = sdk.OrderRequest
 	MarketOrderRequest = sdk.MarketOrderRequest
@@ -45,6 +55,8 @@ type (
 const (
 	CLOBHost       = sdk.CLOBHost
 	DefaultTimeout = sdk.DefaultTimeout
+	GammaAPIHost   = sdk.GammaAPIHost
+	DataAPIHost    = sdk.DataAPIHost
 )
 
 func NewClient(privateKeyHex string, opts ...ClientOption) (*Client, error) {
@@ -58,6 +70,8 @@ func NewPublicClient(opts ...ClientOption) (*Client, error) {
 // Option re-exports for convenient root import usage.
 func WithHTTPClient(h *http.Client) ClientOption           { return sdk.WithHTTPClient(h) }
 func WithCLOBHost(host string) ClientOption                { return sdk.WithCLOBHost(host) }
+func WithGammaAPIHost(host string) ClientOption            { return sdk.WithGammaAPIHost(host) }
+func WithDataAPIHost(host string) ClientOption             { return sdk.WithDataAPIHost(host) }
 func WithEthereumClient(ec *ethclient.Client) ClientOption { return sdk.WithEthereumClient(ec) }
 func WithChainID(id *big.Int) ClientOption                 { return sdk.WithChainID(id) }
 func WithPolygonRPCURLs(urls []string) ClientOption        { return sdk.WithPolygonRPCURLs(urls) }

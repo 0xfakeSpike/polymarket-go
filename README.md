@@ -4,7 +4,7 @@ Go client for the [Polymarket](https://polymarket.com) **CLOB** API, plus **`pmc
 
 ## Features
 
-- **SDK** — import `github.com/0xfakeSpike/polymarket-go`; `Client` mirrors the public CLOB client surface in Go style.
+- **SDK** — import `github.com/0xfakeSpike/polymarket-go`; `Client` mirrors the CLOB API plus read-only helpers for the Polymarket **Gamma** profile and **Data** API (current/closed positions, user activity). No API key required for those public HTTP routes.
 - **CLI (`pmctl`)** — unified reflective method calls via **`call`** plus **`methods`** to list signatures.
 - **MCP server** — same tool registry as the CLI, exposed as native MCP over stdio; optional authenticated client via env.
 - **Examples** — under `examples/`.

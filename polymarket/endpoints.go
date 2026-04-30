@@ -18,6 +18,14 @@ const (
 // CLOBWebSocketPing is the client heartbeat text for user and market channels on ws-subscriptions-clob.
 const CLOBWebSocketPing = "PING"
 
+// Third-party read APIs (not CLOB): Gamma (profiles) and Data (positions, activity).
+// See https://docs.polymarket.com/api-reference/profiles/get-public-profile-by-wallet-address
+// and https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
+const (
+	GammaAPIHost = "https://gamma-api.polymarket.com"
+	DataAPIHost  = "https://data-api.polymarket.com"
+)
+
 const (
 	PathOK   = "/ok"
 	PathTime = "/time"

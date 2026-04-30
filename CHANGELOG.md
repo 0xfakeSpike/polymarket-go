@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.16]
+
+### Added
+- `Client.GetPublicProfile` — Gamma `GET /public-profile` by wallet ([docs](https://docs.polymarket.com/api-reference/profiles/get-public-profile-by-wallet-address)).
+- `Client.GetCurrentPositions`, `GetClosedPositions`, `GetUserActivity` — Polymarket Data API ([positions](https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user), [closed](https://docs.polymarket.com/api-reference/core/get-closed-positions-for-a-user), [activity](https://docs.polymarket.com/api-reference/core/get-user-activity)).
+- Host options `WithGammaAPIHost` / `WithDataAPIHost` and constants `GammaAPIHost`, `DataAPIHost` for tests or proxies.
+
 ## [v1.0.15]
 
 ### Added

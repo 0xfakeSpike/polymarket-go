@@ -23,6 +23,16 @@ func WithCLOBHost(host string) ClientOption {
 	return func(c *Client) { c.clobHost = host }
 }
 
+// WithGammaAPIHost sets the Gamma Markets API base URL (no trailing slash), for tests or proxies.
+func WithGammaAPIHost(host string) ClientOption {
+	return func(c *Client) { c.gammaHost = host }
+}
+
+// WithDataAPIHost sets the Polymarket Data API base URL (no trailing slash), for tests or proxies.
+func WithDataAPIHost(host string) ClientOption {
+	return func(c *Client) { c.dataHost = host }
+}
+
 // WithEthereumClient sets an existing eth client (otherwise one is dialed).
 func WithEthereumClient(ec *ethclient.Client) ClientOption {
 	return func(c *Client) { c.ethClient = ec }

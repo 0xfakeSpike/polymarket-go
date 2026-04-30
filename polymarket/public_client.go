@@ -30,6 +30,12 @@ func NewPublicClient(opts ...ClientOption) (*Client, error) {
 	for _, o := range opts {
 		o(c)
 	}
+	if c.gammaHost == "" {
+		c.gammaHost = GammaAPIHost
+	}
+	if c.dataHost == "" {
+		c.dataHost = DataAPIHost
+	}
 	if c.httpClient == nil {
 		return nil, fmt.Errorf("nil http client")
 	}

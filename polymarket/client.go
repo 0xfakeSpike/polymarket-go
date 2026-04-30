@@ -26,7 +26,9 @@ var defaultPolygonRPCURLs = []string{"https://api.zan.top/polygon-mainnet", "htt
 type Client struct {
 	httpClient *http.Client
 
-	clobHost string
+	clobHost   string
+	gammaHost  string
+	dataHost   string
 
 	ethClient       *ethclient.Client
 	chainID         *big.Int
@@ -97,6 +99,12 @@ func NewClient(privateKeyHex string, opts ...ClientOption) (*Client, error) {
 	}
 	for _, o := range opts {
 		o(c)
+	}
+	if c.gammaHost == "" {
+		c.gammaHost = GammaAPIHost
+	}
+	if c.dataHost == "" {
+		c.dataHost = DataAPIHost
 	}
 
 	if c.ethClient == nil {
