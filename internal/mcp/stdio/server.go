@@ -218,6 +218,16 @@ func listToolDescriptors() []toolDescriptor {
 
 func toolSchema(name string) map[string]any {
 	switch name {
+	case "get_markets_by_annualized_return":
+		return objectSchema(
+			map[string]any{
+				"limit":          map[string]any{"type": "integer", "minimum": 1},
+				"max_pages":      map[string]any{"type": "integer", "minimum": 1},
+				"min_best_ask":   map[string]any{"type": "number", "minimum": 0, "maximum": 1},
+				"now_rfc3339":    map[string]any{"type": "string", "description": "Optional anchor time (RFC3339 or RFC3339Nano) for reproducible scans."},
+			},
+			nil,
+		)
 	case "methods":
 		return objectSchema(
 			map[string]any{"long": map[string]any{"type": "boolean"}},

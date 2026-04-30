@@ -17,7 +17,24 @@
 
 ## Tools
 
-Tool registry is intentionally minimal and unified: `methods` + `client_call` (see `internal/tools`). SDK calls should go through MCP `tools/call.arguments`.
+Tool registry is small and unified: `methods`, `client_call`, plus one read-only helper for Codex-friendly discovery (see `internal/tools`). Arbitrary SDK calls go through `client_call`.
+
+### `get_markets_by_annualized_return`
+
+Read-only scan: pages CLOB `/markets`, reads order books, ranks by annualized return until settlement.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `limit` | int | no | Max rows (default from SDK). |
+| `max_pages` | int | no | Max `/markets` pages (default from SDK). |
+| `min_best_ask` | number | no | Minimum best ask for the chosen outcome (default from SDK). |
+| `now_rfc3339` | string | no | Anchor time `RFC3339` or `RFC3339Nano` for reproducible runs. |
+
+MCP call arguments:
+
+```json
+{"limit":5,"max_pages":1,"min_best_ask":0.5}
+```
 
 ### `methods`
 

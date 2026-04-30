@@ -76,6 +76,7 @@ Examples:
 
 ```bash
 pmctl tools
+pmctl tool -params '{"limit":5,"max_pages":1}' get_markets_by_annualized_return
 pmctl methods -long | head -20
 pmctl call GetOK
 pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
@@ -108,7 +109,7 @@ cmd/pmctl              CLI entrypoint
 cmd/polymarket-mcp     MCP stdio entrypoint
 internal/cli/pmctl   CLI wiring (flags, stdout/stderr)
 internal/mcp/stdio   MCP stdio server (native MCP protocol)
-internal/tools       Shared tool registry (methods, client_call)
+internal/tools       Shared tool registry (methods, client_call, get_markets_by_annualized_return)
 internal/tools/invoke Reflection helpers for client_call
 polymarket/            CLOB client implementation
 examples/              Runnable examples

@@ -107,6 +107,7 @@ Usage:
 
 Examples:
   pmctl tool -params '{"long":true}' methods
+  pmctl tool -params '{"limit":5,"max_pages":1}' get_markets_by_annualized_return
   pmctl call GetOK
   pmctl call -args '["<token_id>"]' GetOrderBook
   pmctl call -args '["<condition_id>"]' GetClobMarketInfo

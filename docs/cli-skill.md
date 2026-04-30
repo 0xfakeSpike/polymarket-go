@@ -6,7 +6,7 @@ This guide is the practical playbook for using `pmctl` in daily workflows.
 
 - Run `pmctl methods -long` first to inspect callable SDK methods and signatures.
 - Use `pmctl call -args '<json array>' <ClientMethod>` as the default invocation path.
-- `pmctl tool` is reserved for registry-level tools (`methods` and `client_call`).
+- `pmctl tool` runs registry tools: `methods`, `client_call`, and the read-only helper `get_markets_by_annualized_return`.
 - `tool` params are JSON **object**; `call` args are JSON **array**.
 - Prefer read-only mode (`-public=true`, default). Use private key only when required.
 
@@ -14,6 +14,7 @@ This guide is the practical playbook for using `pmctl` in daily workflows.
 
 ```bash
 pmctl tools
+pmctl tool -params '{"limit":5,"max_pages":1}' get_markets_by_annualized_return
 pmctl methods -long
 pmctl call GetOK
 pmctl call -args '["<CLOB_TOKEN_ID>"]' GetOrderBook
@@ -32,5 +33,5 @@ pmctl call -args '[{"limit":10,"max_pages":3,"min_best_ask":0.5}]' GetMarketsByA
 - `invalid params`: JSON is malformed or wrong shape.
   - `tool` requires object: `{"k":"v"}`
   - `call` requires array: `["arg1", 2]`
-- `unknown tool`: only `methods` and `client_call` are valid tool names.
+- `unknown tool`: run `pmctl tools` for valid names (`methods`, `client_call`, `get_markets_by_annualized_return`).
 - reflection call errors: verify `pmctl methods -long`, method name, and argument order/types.

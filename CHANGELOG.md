@@ -7,6 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.15]
+
+### Added
+- Read-only named tool `get_markets_by_annualized_return` for CLI and MCP (`tools/list` / `tools/call`), wrapping `GetMarketsByAnnualizedReturn` with JSON params (`limit`, `max_pages`, `min_best_ask`, optional `now_rfc3339`).
+
+### Changed
+- MCP `inputSchema` and user docs (`README`, `docs/mcp-integration.md`, `docs/cli-skill.md`, `pmctl` help) updated for the new tool and Codex-oriented usage examples.
+
 ## [v1.0.14]
 
 ### Changed

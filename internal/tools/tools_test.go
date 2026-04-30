@@ -22,7 +22,7 @@ func TestList_sortedAndIncludesCoreTools(t *testing.T) {
 	for _, tool := range got {
 		names[tool.Name] = true
 	}
-	for _, want := range []string{"client_call", "methods"} {
+	for _, want := range []string{"client_call", "get_markets_by_annualized_return", "methods"} {
 		if !names[want] {
 			t.Fatalf("missing tool %q", want)
 		}

@@ -16,6 +16,9 @@ func TestRunTools(t *testing.T) {
 	if !strings.Contains(stdout.String(), `"client_call"`) {
 		t.Fatalf("expected tool list, got %s", stdout.String())
 	}
+	if !strings.Contains(stdout.String(), `"get_markets_by_annualized_return"`) {
+		t.Fatalf("expected get_markets_by_annualized_return tool, got %s", stdout.String())
+	}
 }
 
 func TestRunToolMethods(t *testing.T) {
